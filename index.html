@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Memory Maker ♡</title>
 
 <style>
@@ -65,7 +66,7 @@ h1 {
   max-width: 600px;
   margin: 35px auto;
   padding: 28px;
-  background: #fff;
+  background: white;
   border-radius: 22px;
 }
 
@@ -177,27 +178,42 @@ button:hover {
 
 <defs>
 
-  <!-- 写真の表示範囲 -->
+  <!-- 音楽プレイヤー -->
   <clipPath id="musicClip">
     <rect x="472" y="300" width="430" height="414"/>
   </clipPath>
 
+  <!-- 記念日カード -->
   <clipPath id="dayClip">
     <rect x="1280" y="325" width="218" height="210"/>
   </clipPath>
 
+  <!-- 左チェキ：回転前の写真窓 -->
   <clipPath id="leftClip">
-    <polygon points="958,627 1275,584 1328,1011 1010,1050"/>
+    <rect
+      x="1010"
+      y="585"
+      width="318"
+      height="430"
+    />
   </clipPath>
 
+  <!-- 右チェキ：回転前の写真窓 -->
   <clipPath id="rightClip">
-    <polygon points="1345,639 1661,684 1600,1107 1283,1067"/>
+    <rect
+      x="1325"
+      y="645"
+      width="318"
+      height="430"
+    />
   </clipPath>
 
 </defs>
 
 
+<!-- ==================== -->
 <!-- 音楽プレイヤー -->
+<!-- ==================== -->
 
 <g clip-path="url(#musicClip)">
   <image
@@ -209,14 +225,14 @@ button:hover {
 <image
   class="frame"
   href="images/musicplayer.PNG"
-  x="0"
-  y="0"
-  width="2048"
-  height="1430"
+  x="0" y="0"
+  width="2048" height="1430"
 />
 
 
+<!-- ==================== -->
 <!-- 記念日カード -->
+<!-- ==================== -->
 
 <g clip-path="url(#dayClip)">
   <image
@@ -228,84 +244,95 @@ button:hover {
 <image
   class="frame"
   href="images/d_day.PNG"
-  x="0"
-  y="0"
-  width="2048"
-  height="1430"
+  x="0" y="0"
+  width="2048" height="1430"
 />
 
 
-<!-- チェキ左 -->
+<!-- ==================== -->
+<!-- 左チェキ -->
+<!-- ==================== -->
 
-<g clip-path="url(#leftClip)">
-  <image
-    id="leftPhoto"
-    preserveAspectRatio="none"
-  />
+<!-- 写真と切り抜き範囲を一緒に回転 -->
+<g transform="rotate(-7.5 1169 800)">
+
+  <g clip-path="url(#leftClip)">
+    <image
+      id="leftPhoto"
+      preserveAspectRatio="none"
+    />
+  </g>
+
 </g>
 
 <image
   class="frame"
   href="images/polaroid_1.PNG"
-  x="0"
-  y="0"
-  width="2048"
-  height="1430"
+  x="0" y="0"
+  width="2048" height="1430"
 />
 
 
-<!-- チェキ右 -->
+<!-- ==================== -->
+<!-- 右チェキ -->
+<!-- ==================== -->
 
-<g clip-path="url(#rightClip)">
-  <image
-    id="rightPhoto"
-    preserveAspectRatio="none"
-  />
+<g transform="rotate(8 1484 860)">
+
+  <g clip-path="url(#rightClip)">
+    <image
+      id="rightPhoto"
+      preserveAspectRatio="none"
+    />
+  </g>
+
 </g>
 
 <image
   class="frame"
   href="images/polaroid_2.PNG"
-  x="0"
-  y="0"
-  width="2048"
-  height="1430"
+  x="0" y="0"
+  width="2048" height="1430"
 />
 
 
+<!-- ==================== -->
 <!-- 写真操作用の透明エリア -->
+<!-- ==================== -->
 
 <g id="hitAreas">
 
   <rect
     class="photo-hit"
     data-id="musicPhoto"
-    x="472"
-    y="300"
-    width="430"
-    height="414"
+    x="472" y="300"
+    width="430" height="414"
   />
 
   <rect
     class="photo-hit"
     data-id="dayPhoto"
-    x="1280"
-    y="325"
-    width="218"
-    height="210"
+    x="1280" y="325"
+    width="218" height="210"
   />
 
-  <polygon
-    class="photo-hit"
-    data-id="leftPhoto"
-    points="958,627 1275,584 1328,1011 1010,1050"
-  />
+  <g transform="rotate(-7.5 1169 800)">
+    <rect
+      class="photo-hit"
+      data-id="leftPhoto"
+      x="1010" y="585"
+      width="318" height="430"
+    />
+  </g>
 
-  <polygon
-    class="photo-hit"
-    data-id="rightPhoto"
-    points="1345,639 1661,684 1600,1107 1283,1067"
-  />
+  <g transform="rotate(8 1484 860)">
+    <rect
+      class="photo-hit"
+      data-id="rightPhoto"
+      x="1325" y="645"
+      width="318" height="430"
+    />
+  </g>
 
 </g>
 
@@ -313,6 +340,10 @@ button:hover {
 
 </div>
 
+
+<!-- ==================== -->
+<!-- カスタマイズ -->
+<!-- ==================== -->
 
 <div class="controls">
 
@@ -363,11 +394,12 @@ button:hover {
 
 <p class="hint">
   写真をアップロードすると編集できます。<br>
-  写真をドラッグして位置を調整してください。
+  ドラッグで位置を調整してください。
 </p>
 
 <label class="zoom-control">
   拡大・縮小
+
   <input
     id="zoomSlider"
     type="range"
@@ -385,7 +417,6 @@ button:hover {
 </button>
 
 </div>
-
 </div>
 
 
@@ -399,36 +430,45 @@ const names = {
   rightPhoto: "チェキ右"
 };
 
-// フレームの位置
+
+// 写真の表示位置
+// チェキは回転前の座標を指定
 const frames = {
+
   musicPhoto: {
     x: 472,
     y: 300,
     w: 430,
-    h: 414
+    h: 414,
+    angle: 0
   },
 
   dayPhoto: {
     x: 1280,
     y: 325,
     w: 218,
-    h: 210
+    h: 210,
+    angle: 0
   },
 
   leftPhoto: {
-    x: 958,
-    y: 584,
-    w: 370,
-    h: 466
+    x: 1010,
+    y: 585,
+    w: 318,
+    h: 430,
+    angle: -7.5
   },
 
   rightPhoto: {
-    x: 1283,
-    y: 639,
-    w: 378,
-    h: 468
+    x: 1325,
+    y: 645,
+    w: 318,
+    h: 430,
+    angle: 8
   }
+
 };
+
 
 // 写真データ
 const photos = {};
@@ -441,6 +481,7 @@ const svg = document.getElementById("mainCanvas");
 const slider = document.getElementById("zoomSlider");
 
 Object.keys(names).forEach(id => {
+
   photos[id] = {
     url: null,
     naturalWidth: 0,
@@ -449,14 +490,17 @@ Object.keys(names).forEach(id => {
     offsetY: 0,
     zoom: 1
   };
+
 });
 
 
+// ====================
 // 写真アップロード
+// ====================
+
 function setPhoto(event, id) {
 
   const file = event.target.files[0];
-
   if (!file) return;
 
   const url = URL.createObjectURL(file);
@@ -496,11 +540,13 @@ function setPhoto(event, id) {
 }
 
 
-// 写真の位置とサイズを更新
+// ====================
+// 写真の表示位置を更新
+// ====================
+
 function updatePhoto(id) {
 
   const photo = photos[id];
-
   if (!photo.url) return;
 
   const frame = frames[id];
@@ -517,7 +563,7 @@ function updatePhoto(id) {
   const width = photo.naturalWidth * scale;
   const height = photo.naturalHeight * scale;
 
-  // 写真の中央を枠の中央に合わせる
+  // 写真の中央を枠の中央に配置
   const x =
     frame.x +
     (frame.w - width) / 2 +
@@ -530,14 +576,16 @@ function updatePhoto(id) {
 
   image.setAttribute("x", x);
   image.setAttribute("y", y);
-
   image.setAttribute("width", width);
   image.setAttribute("height", height);
 
 }
 
 
-// 編集対象を選択
+// ====================
+// 編集する写真を選択
+// ====================
+
 function selectPhoto(id) {
 
   selectedPhoto = id;
@@ -605,7 +653,10 @@ function resetPhoto() {
 }
 
 
-// マウス・タッチ位置をSVG座標に変換
+// ====================
+// マウス・タッチ座標
+// ====================
+
 function getPoint(event) {
 
   const point = svg.createSVGPoint();
@@ -614,7 +665,6 @@ function getPoint(event) {
   point.y = event.clientY;
 
   const matrix = svg.getScreenCTM();
-
   if (!matrix) return null;
 
   return point.matrixTransform(
@@ -624,15 +674,16 @@ function getPoint(event) {
 }
 
 
+// ====================
 // ドラッグ開始
+// ====================
+
 svg.addEventListener("pointerdown", function(event) {
 
   const target = event.target.closest(".photo-hit");
-
   if (!target) return;
 
   const id = target.dataset.id;
-
   if (!photos[id].url) return;
 
   selectPhoto(id);
@@ -647,21 +698,33 @@ svg.addEventListener("pointerdown", function(event) {
 });
 
 
+// ====================
 // ドラッグ中
+// ====================
+
 svg.addEventListener("pointermove", function(event) {
 
-  if (!dragging) return;
-  if (!selectedPhoto) return;
-  if (!lastPoint) return;
+  if (!dragging || !selectedPhoto || !lastPoint) return;
 
   const point = getPoint(event);
-
   if (!point) return;
 
   const photo = photos[selectedPhoto];
+  const frame = frames[selectedPhoto];
 
-  photo.offsetX += point.x - lastPoint.x;
-  photo.offsetY += point.y - lastPoint.y;
+  const dx = point.x - lastPoint.x;
+  const dy = point.y - lastPoint.y;
+
+  // 回転した写真でも直感的にドラッグできるようにする
+  const radians = -frame.angle * Math.PI / 180;
+
+  photo.offsetX +=
+    dx * Math.cos(radians) -
+    dy * Math.sin(radians);
+
+  photo.offsetY +=
+    dx * Math.sin(radians) +
+    dy * Math.cos(radians);
 
   lastPoint = point;
 
@@ -670,7 +733,10 @@ svg.addEventListener("pointermove", function(event) {
 });
 
 
+// ====================
 // ドラッグ終了
+// ====================
+
 function stopDragging() {
   dragging = false;
   lastPoint = null;
