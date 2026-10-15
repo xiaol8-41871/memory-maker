@@ -13,36 +13,103 @@
     body {
       margin: 0;
       min-height: 100vh;
+      padding: 30px 16px;
       background: #eaf4ff;
       font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 24px;
+      text-align: center;
     }
 
     h1 {
       color: #729bc5;
-      font-size: 24px;
-      margin-bottom: 24px;
+      font-size: 26px;
+      margin-bottom: 25px;
     }
 
     .canvas {
       position: relative;
       width: 100%;
       max-width: 900px;
-      aspect-ratio: 2388 / 1668;
+      aspect-ratio: 2048 / 1430;
+      margin: 0 auto;
       background: #c9e4f8;
       overflow: hidden;
     }
 
-    .canvas img {
+    .canvas > img,
+    .photo-layer {
       position: absolute;
-      top: 0;
-      left: 0;
+      inset: 0;
       width: 100%;
       height: 100%;
+    }
+
+    .canvas > img {
+      pointer-events: none;
+    }
+
+    .photo-layer {
+      z-index: 1;
+    }
+
+    .canvas > img {
+      z-index: 2;
+    }
+
+    .canvas > img:nth-of-type(2) {
+      z-index: 4;
+    }
+
+    .canvas > img:nth-of-type(3) {
+      z-index: 6;
+    }
+
+    .canvas > img:nth-of-type(4) {
+      z-index: 8;
+    }
+
+    .photo-layer image {
+      width: 100%;
+      height: 100%;
+    }
+
+    .controls {
+      max-width: 600px;
+      margin: 30px auto;
+      padding: 25px;
+      background: white;
+      border-radius: 18px;
+    }
+
+    .controls h2 {
+      font-size: 18px;
+      color: #729bc5;
+      margin-top: 0;
+    }
+
+    .upload {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 15px 0;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .upload input {
+      width: 55%;
+      min-width: 0;
+    }
+
+    @media (max-width: 500px) {
+      .upload {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .upload input {
+        width: 100%;
+      }
     }
   </style>
 </head>
@@ -52,11 +119,121 @@
   <h1>Memory Maker ♡</h1>
 
   <div class="canvas">
-    <img src="images/musicplayer.PNG" alt="音楽プレイヤー">
-    <img src="images/d_day.PNG" alt="記念日カード">
-    <img src="images/polaroid_1.PNG" alt="チェキ左">
-    <img src="images/polaroid_2.PNG" alt="チェキ右">
+
+    <svg
+      class="photo-layer"
+      viewBox="0 0 2048 1430"
+      preserveAspectRatio="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+
+      <defs>
+        <clipPath id="musicClip">
+          <rect x="472" y="300" width="430" height="414"/>
+        </clipPath>
+
+        <clipPath id="dayClip">
+          <rect x="1280" y="325" width="218" height="210"/>
+        </clipPath>
+
+        <clipPath id="polaroid1Clip">
+          <polygon points="958,627 1275,584 1328,1011 1010,1050"/>
+        </clipPath>
+
+        <clipPath id="polaroid2Clip">
+          <polygon points="1345,639 1661,684 1600,1107 1283,1067"/>
+        </clipPath>
+      </defs>
+
+      <image
+        id="musicPhoto"
+        x="472" y="300"
+        width="430" height="414"
+        preserveAspectRatio="xMidYMid slice"
+        clip-path="url(#musicClip)"
+      />
+
+      <image
+        id="dayPhoto"
+        x="1280" y="325"
+        width="218" height="210"
+        preserveAspectRatio="xMidYMid slice"
+        clip-path="url(#dayClip)"
+      />
+
+      <image
+        id="polaroid1Photo"
+        x="950" y="580"
+        width="390" height="480"
+        preserveAspectRatio="xMidYMid slice"
+        clip-path="url(#polaroid1Clip)"
+      />
+
+      <image
+        id="polaroid2Photo"
+        x="1270" y="630"
+        width="410" height="490"
+        preserveAspectRatio="xMidYMid slice"
+        clip-path="url(#polaroid2Clip)"
+      />
+
+    </svg>
+
+    <img src="images/musicplayer.PNG" alt="">
+    <img src="images/d_day.PNG" alt="">
+    <img src="images/polaroid_1.PNG" alt="">
+    <img src="images/polaroid_2.PNG" alt="">
+
   </div>
+
+  <div class="controls">
+
+    <h2>♡ Customize ♡</h2>
+
+    <label class="upload">
+      🎵 ジャケット写真
+      <input type="file" accept="image/*"
+        onchange="setPhoto(event, 'musicPhoto')">
+    </label>
+
+    <label class="upload">
+      ♡ 記念日カード
+      <input type="file" accept="image/*"
+        onchange="setPhoto(event, 'dayPhoto')">
+    </label>
+
+    <label class="upload">
+      📷 チェキ左
+      <input type="file" accept="image/*"
+        onchange="setPhoto(event, 'polaroid1Photo')">
+    </label>
+
+    <label class="upload">
+      📷 チェキ右
+      <input type="file" accept="image/*"
+        onchange="setPhoto(event, 'polaroid2Photo')">
+    </label>
+
+  </div>
+
+  <script>
+    const photoURLs = {};
+
+    function setPhoto(event, id) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      if (photoURLs[id]) {
+        URL.revokeObjectURL(photoURLs[id]);
+      }
+
+      const url = URL.createObjectURL(file);
+      photoURLs[id] = url;
+
+      const image = document.getElementById(id);
+      image.setAttribute('href', url);
+    }
+  </script>
 
 </body>
 </html>
