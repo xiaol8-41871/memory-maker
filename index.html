@@ -4,36 +4,59 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Memory Maker</title>
+
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: #e5f2ff;
+      background: #eaf4ff;
       font-family: sans-serif;
-    }
-
-    .container {
-      text-align: center;
-      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
     }
 
     h1 {
-      color: #6b91bb;
-      font-size: 32px;
+      color: #729bc5;
+      font-size: 24px;
+      margin-bottom: 24px;
     }
 
-    p {
-      color: #777;
+    .canvas {
+      position: relative;
+      width: 100%;
+      max-width: 900px;
+      aspect-ratio: 2388 / 1668;
+      background: #c9e4f8;
+      overflow: hidden;
+    }
+
+    .canvas img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
     }
   </style>
 </head>
+
 <body>
-  <div class="container">
-    <h1>Memory Maker ♡</h1>
-    <p>Coming Soon...</p>
+
+  <h1>Memory Maker ♡</h1>
+
+  <div class="canvas">
+    <img src="images/musicplayer.PNG" alt="音楽プレイヤー">
+    <img src="images/d_day.PNG" alt="記念日カード">
+    <img src="images/polaroid_1.PNG" alt="チェキ左">
+    <img src="images/polaroid_2.PNG" alt="チェキ右">
   </div>
+
 </body>
 </html>
