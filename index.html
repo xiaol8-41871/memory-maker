@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Memory Maker</title>
+
+<title>Memory Maker ♡</title>
 
 <style>
 * {
@@ -12,7 +13,7 @@
 
 body {
   margin: 0;
-  padding: 30px 16px;
+  padding: 30px 16px 60px;
   min-height: 100vh;
   background: #eaf4ff;
   font-family: sans-serif;
@@ -30,79 +31,59 @@ h1 {
   width: 100%;
   max-width: 900px;
   aspect-ratio: 2048 / 1430;
-  margin: auto;
+  margin: 0 auto;
   background: #c9e4f8;
   overflow: hidden;
 }
 
-.canvas > img,
-.photo-layer {
-  position: absolute;
-  inset: 0;
+.canvas svg {
+  display: block;
   width: 100%;
   height: 100%;
-}
-
-.canvas > img {
-  pointer-events: none;
-}
-
-.photo-layer {
-  z-index: 1;
   touch-action: none;
 }
 
-.canvas > img {
-  z-index: 2;
+.frame-image {
+  pointer-events: none;
 }
 
-.canvas > img:nth-of-type(2) {
-  z-index: 4;
-}
-
-.canvas > img:nth-of-type(3) {
-  z-index: 6;
-}
-
-.canvas > img:nth-of-type(4) {
-  z-index: 8;
-}
-
-.photo-hit {
+.photo-area {
   fill: transparent;
   cursor: grab;
   pointer-events: all;
 }
 
-.photo-hit:active {
+.photo-area:active {
   cursor: grabbing;
 }
 
-.photo-hit.selected {
+.photo-area.selected {
   stroke: #83baff;
-  stroke-width: 5;
+  stroke-width: 4;
   stroke-dasharray: 12 8;
 }
 
 .controls {
+  width: 100%;
   max-width: 600px;
   margin: 30px auto;
   padding: 25px;
   background: white;
-  border-radius: 18px;
+  border-radius: 20px;
 }
 
 .controls h2 {
   color: #729bc5;
-  font-size: 19px;
+  font-size: 20px;
+  margin-top: 0;
 }
 
 .upload {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
-  margin: 16px 0;
+  margin: 18px 0;
   color: #555;
   font-size: 14px;
 }
@@ -113,25 +94,32 @@ h1 {
 }
 
 .editor {
-  margin-top: 25px;
-  padding: 20px;
-  border-radius: 14px;
+  margin-top: 28px;
+  padding: 22px;
   background: #f0f7ff;
+  border-radius: 16px;
 }
 
 .editor h3 {
   margin-top: 0;
   color: #729bc5;
+  font-size: 17px;
 }
 
 .editor input[type="range"] {
-  width: 85%;
+  width: 90%;
   accent-color: #729bc5;
 }
 
+.hint {
+  font-size: 13px;
+  color: #777;
+  line-height: 1.8;
+}
+
 button {
-  margin-top: 15px;
-  padding: 10px 22px;
+  padding: 11px 24px;
+  margin-top: 10px;
   background: #93bce4;
   color: white;
   border: none;
@@ -143,13 +131,11 @@ button:hover {
   background: #729bc5;
 }
 
-.hint {
-  font-size: 13px;
-  color: #777;
-  line-height: 1.7;
-}
-
 @media (max-width: 500px) {
+  h1 {
+    font-size: 23px;
+  }
+
   .upload {
     flex-direction: column;
     align-items: flex-start;
@@ -157,6 +143,10 @@ button:hover {
 
   .upload input {
     width: 100%;
+  }
+
+  .controls {
+    padding: 20px;
   }
 }
 </style>
@@ -168,267 +158,559 @@ button:hover {
 
 <div class="canvas">
 
-  <svg
-    id="photoCanvas"
-    class="photo-layer"
-    viewBox="0 0 2048 1430"
+<svg
+  id="mainCanvas"
+  viewBox="0 0 2048 1430"
+  preserveAspectRatio="xMidYMid meet"
+  xmlns="http://www.w3.org/2000/svg"
+>
+
+<defs>
+
+  <!-- 音楽プレイヤー -->
+  <clipPath id="musicClip">
+    <rect
+      x="472"
+      y="358"
+      width="430"
+      height="356"
+    />
+  </clipPath>
+
+  <!-- 記念日カード -->
+  <clipPath id="dayClip">
+    <rect
+      x="1280"
+      y="325"
+      width="218"
+      height="210"
+    />
+  </clipPath>
+
+  <!-- チェキ左 -->
+  <clipPath id="leftClip">
+    <polygon
+      points="
+        958,627
+        1275,584
+        1328,1011
+        1010,1050
+      "
+    />
+  </clipPath>
+
+  <!-- チェキ右 -->
+  <clipPath id="rightClip">
+    <polygon
+      points="
+        1345,639
+        1661,684
+        1600,1107
+        1283,1067
+      "
+    />
+  </clipPath>
+
+</defs>
+
+
+<!-- ===================== -->
+<!-- 音楽プレイヤー -->
+<!-- ===================== -->
+
+<g clip-path="url(#musicClip)">
+  <image
+    id="musicPhoto"
     preserveAspectRatio="none"
-  >
+  />
+</g>
 
-    <defs>
-      <clipPath id="musicClip">
-        <rect x="472" y="300" width="430" height="414"/>
-      </clipPath>
+<image
+  class="frame-image"
+  href="images/musicplayer.PNG"
+  x="0"
+  y="0"
+  width="2048"
+  height="1430"
+/>
 
-      <clipPath id="dayClip">
-        <rect x="1280" y="325" width="218" height="210"/>
-      </clipPath>
 
-      <clipPath id="polaroid1Clip">
-        <polygon points="958,627 1275,584 1328,1011 1010,1050"/>
-      </clipPath>
+<!-- ===================== -->
+<!-- 記念日カード -->
+<!-- ===================== -->
 
-      <clipPath id="polaroid2Clip">
-        <polygon points="1345,639 1661,684 1600,1107 1283,1067"/>
-      </clipPath>
-    </defs>
-
-    <g clip-path="url(#musicClip)">
-      <image id="musicPhoto"
-        x="472" y="300" width="430" height="414"
-        preserveAspectRatio="xMidYMid slice"/>
-    </g>
-
-    <g clip-path="url(#dayClip)">
-      <image id="dayPhoto"
-        x="1280" y="325" width="218" height="210"
-        preserveAspectRatio="xMidYMid slice"/>
-    </g>
-
-    <g clip-path="url(#polaroid1Clip)">
-      <image id="polaroid1Photo"
-        x="950" y="580" width="390" height="480"
-        preserveAspectRatio="xMidYMid slice"/>
-    </g>
-
-    <g clip-path="url(#polaroid2Clip)">
-      <image id="polaroid2Photo"
-        x="1270" y="630" width="410" height="490"
-        preserveAspectRatio="xMidYMid slice"/>
-    </g>
-
-  </svg>
-
-  <img src="images/musicplayer.PNG" alt="">
-  <img src="images/d_day.PNG" alt="">
-  <img src="images/polaroid_1.PNG" alt="">
-  <img src="images/polaroid_2.PNG" alt="">
-
-  <svg
-    id="hitCanvas"
-    class="photo-layer"
-    viewBox="0 0 2048 1430"
+<g clip-path="url(#dayClip)">
+  <image
+    id="dayPhoto"
     preserveAspectRatio="none"
-    style="z-index: 10;"
-  >
-    <rect class="photo-hit"
-      data-id="musicPhoto"
-      x="472" y="300" width="430" height="414"/>
+  />
+</g>
 
-    <rect class="photo-hit"
-      data-id="dayPhoto"
-      x="1280" y="325" width="218" height="210"/>
+<image
+  class="frame-image"
+  href="images/d_day.PNG"
+  x="0"
+  y="0"
+  width="2048"
+  height="1430"
+/>
 
-    <polygon class="photo-hit"
-      data-id="polaroid1Photo"
-      points="958,627 1275,584 1328,1011 1010,1050"/>
 
-    <polygon class="photo-hit"
-      data-id="polaroid2Photo"
-      points="1345,639 1661,684 1600,1107 1283,1067"/>
-  </svg>
+<!-- ===================== -->
+<!-- チェキ左 -->
+<!-- ===================== -->
+
+<g clip-path="url(#leftClip)">
+  <image
+    id="leftPhoto"
+    preserveAspectRatio="none"
+  />
+</g>
+
+<image
+  class="frame-image"
+  href="images/polaroid_1.PNG"
+  x="0"
+  y="0"
+  width="2048"
+  height="1430"
+/>
+
+
+<!-- ===================== -->
+<!-- チェキ右 -->
+<!-- ===================== -->
+
+<g clip-path="url(#rightClip)">
+  <image
+    id="rightPhoto"
+    preserveAspectRatio="none"
+  />
+</g>
+
+<image
+  class="frame-image"
+  href="images/polaroid_2.PNG"
+  x="0"
+  y="0"
+  width="2048"
+  height="1430"
+/>
+
+
+<!-- ===================== -->
+<!-- 編集用の透明エリア -->
+<!-- ===================== -->
+
+<g id="hitAreas">
+
+  <rect
+    class="photo-area"
+    data-id="musicPhoto"
+    x="472"
+    y="358"
+    width="430"
+    height="356"
+  />
+
+  <rect
+    class="photo-area"
+    data-id="dayPhoto"
+    x="1280"
+    y="325"
+    width="218"
+    height="210"
+  />
+
+  <polygon
+    class="photo-area"
+    data-id="leftPhoto"
+    points="
+      958,627
+      1275,584
+      1328,1011
+      1010,1050
+    "
+  />
+
+  <polygon
+    class="photo-area"
+    data-id="rightPhoto"
+    points="
+      1345,639
+      1661,684
+      1600,1107
+      1283,1067
+    "
+  />
+
+</g>
+
+</svg>
 
 </div>
+
+
+<!-- ===================== -->
+<!-- カスタマイズメニュー -->
+<!-- ===================== -->
 
 <div class="controls">
 
-  <h2>♡ Customize ♡</h2>
+<h2>♡ Customize ♡</h2>
 
-  <label class="upload">
-    🎵 ジャケット写真
-    <input type="file" accept="image/*"
-      onchange="setPhoto(event, 'musicPhoto')">
-  </label>
+<label class="upload">
+  🎵 ジャケット写真
+  <input
+    type="file"
+    accept="image/*"
+    onchange="setPhoto(event, 'musicPhoto')"
+  >
+</label>
 
-  <label class="upload">
-    ♡ 記念日カード
-    <input type="file" accept="image/*"
-      onchange="setPhoto(event, 'dayPhoto')">
-  </label>
+<label class="upload">
+  ♡ 記念日カード
+  <input
+    type="file"
+    accept="image/*"
+    onchange="setPhoto(event, 'dayPhoto')"
+  >
+</label>
 
-  <label class="upload">
-    📷 チェキ左
-    <input type="file" accept="image/*"
-      onchange="setPhoto(event, 'polaroid1Photo')">
-  </label>
+<label class="upload">
+  📷 チェキ左
+  <input
+    type="file"
+    accept="image/*"
+    onchange="setPhoto(event, 'leftPhoto')"
+  >
+</label>
 
-  <label class="upload">
-    📷 チェキ右
-    <input type="file" accept="image/*"
-      onchange="setPhoto(event, 'polaroid2Photo')">
-  </label>
+<label class="upload">
+  📷 チェキ右
+  <input
+    type="file"
+    accept="image/*"
+    onchange="setPhoto(event, 'rightPhoto')"
+  >
+</label>
 
-  <div class="editor">
 
-    <h3 id="editingTitle">写真を選択してください ♡</h3>
+<div class="editor">
 
-    <p class="hint">
-      プレビュー内の写真をクリックして選択できます。<br>
-      ドラッグで位置を調整できます。
-    </p>
+<h3 id="editingTitle">
+  写真を選択してください ♡
+</h3>
 
-    <label>
-      拡大・縮小
-      <br><br>
-      <input
-        id="zoomSlider"
-        type="range"
-        min="1"
-        max="4"
-        step="0.01"
-        value="1"
-      >
-    </label>
+<p class="hint">
+  写真をアップロードすると編集できます。<br>
+  写真をドラッグして位置を調整してください。
+</p>
 
-    <p id="zoomValue">100%</p>
+<label>
+  拡大・縮小
+  <br><br>
 
-    <button onclick="resetPhoto()">
-      ↩ 位置をリセット
-    </button>
+  <input
+    id="zoomSlider"
+    type="range"
+    min="1"
+    max="4"
+    step="0.01"
+    value="1"
+  >
+</label>
 
-  </div>
+<p id="zoomValue">100%</p>
+
+<button onclick="resetPhoto()">
+  ↩ 位置をリセット
+</button>
 
 </div>
 
+</div>
+
+
 <script>
+
+// =====================
+// 写真の名前
+// =====================
+
 const names = {
   musicPhoto: "ジャケット写真",
   dayPhoto: "記念日カード",
-  polaroid1Photo: "チェキ左",
-  polaroid2Photo: "チェキ右"
+  leftPhoto: "チェキ左",
+  rightPhoto: "チェキ右"
 };
 
-const photoSettings = {};
+
+// =====================
+// 写真枠の位置
+// =====================
+
+const frames = {
+  musicPhoto: {
+    x: 472,
+    y: 358,
+    w: 430,
+    h: 356
+  },
+
+  dayPhoto: {
+    x: 1280,
+    y: 325,
+    w: 218,
+    h: 210
+  },
+
+  leftPhoto: {
+    x: 958,
+    y: 584,
+    w: 370,
+    h: 466
+  },
+
+  rightPhoto: {
+    x: 1283,
+    y: 639,
+    w: 378,
+    h: 468
+  }
+};
+
+
+// =====================
+// 初期設定
+// =====================
+
+const photos = {};
 
 let selectedPhoto = null;
 let dragging = false;
 let lastPoint = null;
 
-const svg = document.getElementById("hitCanvas");
+const svg = document.getElementById("mainCanvas");
 const slider = document.getElementById("zoomSlider");
 
 Object.keys(names).forEach(id => {
-  const image = document.getElementById(id);
 
-  const x = Number(image.getAttribute("x"));
-  const y = Number(image.getAttribute("y"));
-  const width = Number(image.getAttribute("width"));
-  const height = Number(image.getAttribute("height"));
-
-  photoSettings[id] = {
+  photos[id] = {
+    url: null,
+    naturalWidth: 0,
+    naturalHeight: 0,
     x: 0,
     y: 0,
-    scale: 1,
-    cx: x + width / 2,
-    cy: y + height / 2,
-    url: null
+    zoom: 1
   };
+
 });
 
+
+// =====================
+// 写真アップロード
+// =====================
+
 function setPhoto(event, id) {
+
   const file = event.target.files[0];
+
   if (!file) return;
 
-  const settings = photoSettings[id];
+  const url = URL.createObjectURL(file);
 
-  if (settings.url) {
-    URL.revokeObjectURL(settings.url);
-  }
+  const tempImage = new Image();
 
-  settings.url = URL.createObjectURL(file);
+  tempImage.onload = function() {
 
-  document.getElementById(id)
-    .setAttribute("href", settings.url);
+    const photo = photos[id];
 
-  selectPhoto(id);
+    if (photo.url) {
+      URL.revokeObjectURL(photo.url);
+    }
+
+    photo.url = url;
+
+    photo.naturalWidth = tempImage.naturalWidth;
+    photo.naturalHeight = tempImage.naturalHeight;
+
+    photo.x = 0;
+    photo.y = 0;
+    photo.zoom = 1;
+
+    const image = document.getElementById(id);
+
+    image.setAttribute("href", url);
+
+    updatePhoto(id);
+    selectPhoto(id);
+
+  };
+
+  tempImage.onerror = function() {
+    URL.revokeObjectURL(url);
+    alert("画像を読み込めませんでした。");
+  };
+
+  tempImage.src = url;
+
 }
 
+
+// =====================
+// 数値の範囲制限
+// =====================
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+
+// =====================
+// 写真の表示処理
+// =====================
+
+function updatePhoto(id) {
+
+  const photo = photos[id];
+
+  if (!photo.url) return;
+
+  const frame = frames[id];
+  const image = document.getElementById(id);
+
+  // 写真の比率を維持して枠を埋める
+  const baseScale = Math.max(
+    frame.w / photo.naturalWidth,
+    frame.h / photo.naturalHeight
+  );
+
+  const scale = baseScale * photo.zoom;
+
+  const width = photo.naturalWidth * scale;
+  const height = photo.naturalHeight * scale;
+
+  // 枠から写真が外れない範囲を計算
+  const maxX = Math.max(
+    0,
+    (width - frame.w) / 2
+  );
+
+  const maxY = Math.max(
+    0,
+    (height - frame.h) / 2
+  );
+
+  photo.x = clamp(photo.x, -maxX, maxX);
+  photo.y = clamp(photo.y, -maxY, maxY);
+
+  // 写真を中央に配置
+  const x =
+    frame.x +
+    (frame.w - width) / 2 +
+    photo.x;
+
+  const y =
+    frame.y +
+    (frame.h - height) / 2 +
+    photo.y;
+
+  image.setAttribute("x", x);
+  image.setAttribute("y", y);
+
+  image.setAttribute("width", width);
+  image.setAttribute("height", height);
+
+}
+
+
+// =====================
+// 編集する写真を選択
+// =====================
+
 function selectPhoto(id) {
+
   selectedPhoto = id;
 
-  document.querySelectorAll(".photo-hit")
-    .forEach(element => {
-      element.classList.toggle(
+  document.querySelectorAll(".photo-area")
+    .forEach(area => {
+
+      area.classList.toggle(
         "selected",
-        element.dataset.id === id
+        area.dataset.id === id
       );
+
     });
 
   document.getElementById("editingTitle")
     .textContent = "編集中：" + names[id];
 
-  const scale = photoSettings[id].scale;
+  slider.value = photos[id].zoom;
 
-  slider.value = scale;
+  updateZoomLabel();
+
+}
+
+
+// =====================
+// 拡大率の表示
+// =====================
+
+function updateZoomLabel() {
 
   document.getElementById("zoomValue")
-    .textContent = Math.round(scale * 100) + "%";
+    .textContent =
+    Math.round(Number(slider.value) * 100) + "%";
+
 }
 
-function updatePhoto(id) {
-  const settings = photoSettings[id];
-  const image = document.getElementById(id);
 
-  image.setAttribute(
-    "transform",
-    `translate(${settings.x} ${settings.y})
-     translate(${settings.cx} ${settings.cy})
-     scale(${settings.scale})
-     translate(${-settings.cx} ${-settings.cy})`
-  );
-}
+// =====================
+// 拡大・縮小
+// =====================
 
-slider.addEventListener("input", () => {
+slider.addEventListener("input", function() {
+
   if (!selectedPhoto) return;
 
-  const scale = Number(slider.value);
-
-  photoSettings[selectedPhoto].scale = scale;
+  photos[selectedPhoto].zoom =
+    Number(slider.value);
 
   updatePhoto(selectedPhoto);
+  updateZoomLabel();
 
-  document.getElementById("zoomValue")
-    .textContent = Math.round(scale * 100) + "%";
 });
 
+
+// =====================
+// リセット
+// =====================
+
 function resetPhoto() {
+
   if (!selectedPhoto) return;
 
-  const settings = photoSettings[selectedPhoto];
+  const photo = photos[selectedPhoto];
 
-  settings.x = 0;
-  settings.y = 0;
-  settings.scale = 1;
+  photo.x = 0;
+  photo.y = 0;
+  photo.zoom = 1;
 
   slider.value = 1;
 
-  document.getElementById("zoomValue")
-    .textContent = "100%";
-
   updatePhoto(selectedPhoto);
+  updateZoomLabel();
+
 }
 
+
+// =====================
+// マウス位置をSVG座標に変換
+// =====================
+
 function getPoint(event) {
+
   const point = svg.createSVGPoint();
 
   point.x = event.clientX;
@@ -438,17 +720,26 @@ function getPoint(event) {
 
   if (!matrix) return null;
 
-  return point.matrixTransform(matrix.inverse());
+  return point.matrixTransform(
+    matrix.inverse()
+  );
+
 }
 
-svg.addEventListener("pointerdown", event => {
-  const target = event.target.closest(".photo-hit");
+
+// =====================
+// ドラッグ開始
+// =====================
+
+svg.addEventListener("pointerdown", function(event) {
+
+  const target = event.target.closest(".photo-area");
 
   if (!target) return;
 
   const id = target.dataset.id;
 
-  if (!photoSettings[id].url) return;
+  if (!photos[id].url) return;
 
   selectPhoto(id);
 
@@ -458,32 +749,56 @@ svg.addEventListener("pointerdown", event => {
   svg.setPointerCapture(event.pointerId);
 
   event.preventDefault();
+
 });
 
-svg.addEventListener("pointermove", event => {
-  if (!dragging || !selectedPhoto || !lastPoint) return;
+
+// =====================
+// ドラッグ中
+// =====================
+
+svg.addEventListener("pointermove", function(event) {
+
+  if (!dragging) return;
+  if (!selectedPhoto) return;
+  if (!lastPoint) return;
 
   const point = getPoint(event);
+
   if (!point) return;
 
-  const settings = photoSettings[selectedPhoto];
+  const photo = photos[selectedPhoto];
 
-  settings.x += point.x - lastPoint.x;
-  settings.y += point.y - lastPoint.y;
+  photo.x += point.x - lastPoint.x;
+  photo.y += point.y - lastPoint.y;
 
   lastPoint = point;
 
   updatePhoto(selectedPhoto);
+
 });
 
+
+// =====================
+// ドラッグ終了
+// =====================
+
 function stopDragging() {
+
   dragging = false;
   lastPoint = null;
+
 }
 
 svg.addEventListener("pointerup", stopDragging);
+
 svg.addEventListener("pointercancel", stopDragging);
-svg.addEventListener("lostpointercapture", stopDragging);
+
+svg.addEventListener(
+  "lostpointercapture",
+  stopDragging
+);
+
 </script>
 
 </body>
