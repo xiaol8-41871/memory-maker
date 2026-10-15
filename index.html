@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Memory Maker ♡</title>
 
 <style>
@@ -13,21 +12,20 @@
 
 body {
   margin: 0;
-  padding: 30px 16px 60px;
   min-height: 100vh;
+  padding: 30px 16px 60px;
   background: #eaf4ff;
   font-family: sans-serif;
   text-align: center;
 }
 
 h1 {
+  margin: 15px 0 30px;
   color: #729bc5;
-  font-size: 26px;
-  margin-bottom: 25px;
+  font-size: 28px;
 }
 
 .canvas {
-  position: relative;
   width: 100%;
   max-width: 900px;
   aspect-ratio: 2048 / 1430;
@@ -43,47 +41,46 @@ h1 {
   touch-action: none;
 }
 
-.frame-image {
+.frame {
   pointer-events: none;
 }
 
-.photo-area {
+.photo-hit {
   fill: transparent;
-  cursor: grab;
   pointer-events: all;
+  cursor: grab;
 }
 
-.photo-area:active {
+.photo-hit:active {
   cursor: grabbing;
 }
 
-.photo-area.selected {
-  stroke: #83baff;
+.photo-hit.selected {
+  stroke: #7bb8f5;
   stroke-width: 4;
   stroke-dasharray: 12 8;
 }
 
 .controls {
-  width: 100%;
   max-width: 600px;
-  margin: 30px auto;
-  padding: 25px;
-  background: white;
-  border-radius: 20px;
+  margin: 35px auto;
+  padding: 28px;
+  background: #fff;
+  border-radius: 22px;
 }
 
 .controls h2 {
+  margin: 0 0 25px;
   color: #729bc5;
-  font-size: 20px;
-  margin-top: 0;
+  font-size: 21px;
 }
 
 .upload {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  margin: 18px 0;
+  gap: 15px;
+  margin: 20px 0;
   color: #555;
   font-size: 14px;
 }
@@ -94,36 +91,49 @@ h1 {
 }
 
 .editor {
-  margin-top: 28px;
-  padding: 22px;
+  margin-top: 30px;
+  padding: 25px 18px;
   background: #f0f7ff;
   border-radius: 16px;
 }
 
 .editor h3 {
-  margin-top: 0;
+  margin: 0 0 15px;
   color: #729bc5;
   font-size: 17px;
 }
 
-.editor input[type="range"] {
-  width: 90%;
-  accent-color: #729bc5;
-}
-
 .hint {
-  font-size: 13px;
   color: #777;
+  font-size: 13px;
   line-height: 1.8;
 }
 
+.zoom-control {
+  display: block;
+  margin-top: 20px;
+  color: #555;
+  font-size: 14px;
+}
+
+#zoomSlider {
+  width: 90%;
+  margin-top: 15px;
+  accent-color: #729bc5;
+}
+
+#zoomValue {
+  color: #729bc5;
+  font-size: 14px;
+}
+
 button {
-  padding: 11px 24px;
-  margin-top: 10px;
+  margin-top: 12px;
+  padding: 11px 25px;
   background: #93bce4;
-  color: white;
   border: none;
   border-radius: 10px;
+  color: white;
   cursor: pointer;
 }
 
@@ -133,7 +143,11 @@ button:hover {
 
 @media (max-width: 500px) {
   h1 {
-    font-size: 23px;
+    font-size: 24px;
+  }
+
+  .controls {
+    padding: 20px;
   }
 
   .upload {
@@ -143,10 +157,6 @@ button:hover {
 
   .upload input {
     width: 100%;
-  }
-
-  .controls {
-    padding: 20px;
   }
 }
 </style>
@@ -167,56 +177,27 @@ button:hover {
 
 <defs>
 
-  <!-- 音楽プレイヤー -->
+  <!-- 写真の表示範囲 -->
   <clipPath id="musicClip">
-    <rect
-      x="472"
-      y="358"
-      width="430"
-      height="356"
-    />
+    <rect x="472" y="300" width="430" height="414"/>
   </clipPath>
 
-  <!-- 記念日カード -->
   <clipPath id="dayClip">
-    <rect
-      x="1280"
-      y="325"
-      width="218"
-      height="210"
-    />
+    <rect x="1280" y="325" width="218" height="210"/>
   </clipPath>
 
-  <!-- チェキ左 -->
   <clipPath id="leftClip">
-    <polygon
-      points="
-        958,627
-        1275,584
-        1328,1011
-        1010,1050
-      "
-    />
+    <polygon points="958,627 1275,584 1328,1011 1010,1050"/>
   </clipPath>
 
-  <!-- チェキ右 -->
   <clipPath id="rightClip">
-    <polygon
-      points="
-        1345,639
-        1661,684
-        1600,1107
-        1283,1067
-      "
-    />
+    <polygon points="1345,639 1661,684 1600,1107 1283,1067"/>
   </clipPath>
 
 </defs>
 
 
-<!-- ===================== -->
 <!-- 音楽プレイヤー -->
-<!-- ===================== -->
 
 <g clip-path="url(#musicClip)">
   <image
@@ -226,7 +207,7 @@ button:hover {
 </g>
 
 <image
-  class="frame-image"
+  class="frame"
   href="images/musicplayer.PNG"
   x="0"
   y="0"
@@ -235,9 +216,7 @@ button:hover {
 />
 
 
-<!-- ===================== -->
 <!-- 記念日カード -->
-<!-- ===================== -->
 
 <g clip-path="url(#dayClip)">
   <image
@@ -247,7 +226,7 @@ button:hover {
 </g>
 
 <image
-  class="frame-image"
+  class="frame"
   href="images/d_day.PNG"
   x="0"
   y="0"
@@ -256,9 +235,7 @@ button:hover {
 />
 
 
-<!-- ===================== -->
 <!-- チェキ左 -->
-<!-- ===================== -->
 
 <g clip-path="url(#leftClip)">
   <image
@@ -268,7 +245,7 @@ button:hover {
 </g>
 
 <image
-  class="frame-image"
+  class="frame"
   href="images/polaroid_1.PNG"
   x="0"
   y="0"
@@ -277,9 +254,7 @@ button:hover {
 />
 
 
-<!-- ===================== -->
 <!-- チェキ右 -->
-<!-- ===================== -->
 
 <g clip-path="url(#rightClip)">
   <image
@@ -289,7 +264,7 @@ button:hover {
 </g>
 
 <image
-  class="frame-image"
+  class="frame"
   href="images/polaroid_2.PNG"
   x="0"
   y="0"
@@ -298,23 +273,21 @@ button:hover {
 />
 
 
-<!-- ===================== -->
-<!-- 編集用の透明エリア -->
-<!-- ===================== -->
+<!-- 写真操作用の透明エリア -->
 
 <g id="hitAreas">
 
   <rect
-    class="photo-area"
+    class="photo-hit"
     data-id="musicPhoto"
     x="472"
-    y="358"
+    y="300"
     width="430"
-    height="356"
+    height="414"
   />
 
   <rect
-    class="photo-area"
+    class="photo-hit"
     data-id="dayPhoto"
     x="1280"
     y="325"
@@ -323,25 +296,15 @@ button:hover {
   />
 
   <polygon
-    class="photo-area"
+    class="photo-hit"
     data-id="leftPhoto"
-    points="
-      958,627
-      1275,584
-      1328,1011
-      1010,1050
-    "
+    points="958,627 1275,584 1328,1011 1010,1050"
   />
 
   <polygon
-    class="photo-area"
+    class="photo-hit"
     data-id="rightPhoto"
-    points="
-      1345,639
-      1661,684
-      1600,1107
-      1283,1067
-    "
+    points="1345,639 1661,684 1600,1107 1283,1067"
   />
 
 </g>
@@ -350,10 +313,6 @@ button:hover {
 
 </div>
 
-
-<!-- ===================== -->
-<!-- カスタマイズメニュー -->
-<!-- ===================== -->
 
 <div class="controls">
 
@@ -407,14 +366,12 @@ button:hover {
   写真をドラッグして位置を調整してください。
 </p>
 
-<label>
+<label class="zoom-control">
   拡大・縮小
-  <br><br>
-
   <input
     id="zoomSlider"
     type="range"
-    min="1"
+    min="0.5"
     max="4"
     step="0.01"
     value="1"
@@ -434,10 +391,7 @@ button:hover {
 
 <script>
 
-// =====================
 // 写真の名前
-// =====================
-
 const names = {
   musicPhoto: "ジャケット写真",
   dayPhoto: "記念日カード",
@@ -445,17 +399,13 @@ const names = {
   rightPhoto: "チェキ右"
 };
 
-
-// =====================
-// 写真枠の位置
-// =====================
-
+// フレームの位置
 const frames = {
   musicPhoto: {
     x: 472,
-    y: 358,
+    y: 300,
     w: 430,
-    h: 356
+    h: 414
   },
 
   dayPhoto: {
@@ -480,11 +430,7 @@ const frames = {
   }
 };
 
-
-// =====================
-// 初期設定
-// =====================
-
+// 写真データ
 const photos = {};
 
 let selectedPhoto = null;
@@ -495,23 +441,18 @@ const svg = document.getElementById("mainCanvas");
 const slider = document.getElementById("zoomSlider");
 
 Object.keys(names).forEach(id => {
-
   photos[id] = {
     url: null,
     naturalWidth: 0,
     naturalHeight: 0,
-    x: 0,
-    y: 0,
+    offsetX: 0,
+    offsetY: 0,
     zoom: 1
   };
-
 });
 
 
-// =====================
 // 写真アップロード
-// =====================
-
 function setPhoto(event, id) {
 
   const file = event.target.files[0];
@@ -519,7 +460,6 @@ function setPhoto(event, id) {
   if (!file) return;
 
   const url = URL.createObjectURL(file);
-
   const tempImage = new Image();
 
   tempImage.onload = function() {
@@ -531,17 +471,15 @@ function setPhoto(event, id) {
     }
 
     photo.url = url;
-
     photo.naturalWidth = tempImage.naturalWidth;
     photo.naturalHeight = tempImage.naturalHeight;
 
-    photo.x = 0;
-    photo.y = 0;
+    photo.offsetX = 0;
+    photo.offsetY = 0;
     photo.zoom = 1;
 
-    const image = document.getElementById(id);
-
-    image.setAttribute("href", url);
+    document.getElementById(id)
+      .setAttribute("href", url);
 
     updatePhoto(id);
     selectPhoto(id);
@@ -558,19 +496,7 @@ function setPhoto(event, id) {
 }
 
 
-// =====================
-// 数値の範囲制限
-// =====================
-
-function clamp(value, min, max) {
-  return Math.max(min, Math.min(max, value));
-}
-
-
-// =====================
-// 写真の表示処理
-// =====================
-
+// 写真の位置とサイズを更新
 function updatePhoto(id) {
 
   const photo = photos[id];
@@ -580,7 +506,7 @@ function updatePhoto(id) {
   const frame = frames[id];
   const image = document.getElementById(id);
 
-  // 写真の比率を維持して枠を埋める
+  // 元画像の縦横比を維持
   const baseScale = Math.max(
     frame.w / photo.naturalWidth,
     frame.h / photo.naturalHeight
@@ -591,30 +517,16 @@ function updatePhoto(id) {
   const width = photo.naturalWidth * scale;
   const height = photo.naturalHeight * scale;
 
-  // 枠から写真が外れない範囲を計算
-  const maxX = Math.max(
-    0,
-    (width - frame.w) / 2
-  );
-
-  const maxY = Math.max(
-    0,
-    (height - frame.h) / 2
-  );
-
-  photo.x = clamp(photo.x, -maxX, maxX);
-  photo.y = clamp(photo.y, -maxY, maxY);
-
-  // 写真を中央に配置
+  // 写真の中央を枠の中央に合わせる
   const x =
     frame.x +
     (frame.w - width) / 2 +
-    photo.x;
+    photo.offsetX;
 
   const y =
     frame.y +
     (frame.h - height) / 2 +
-    photo.y;
+    photo.offsetY;
 
   image.setAttribute("x", x);
   image.setAttribute("y", y);
@@ -625,15 +537,12 @@ function updatePhoto(id) {
 }
 
 
-// =====================
-// 編集する写真を選択
-// =====================
-
+// 編集対象を選択
 function selectPhoto(id) {
 
   selectedPhoto = id;
 
-  document.querySelectorAll(".photo-area")
+  document.querySelectorAll(".photo-hit")
     .forEach(area => {
 
       area.classList.toggle(
@@ -653,10 +562,7 @@ function selectPhoto(id) {
 }
 
 
-// =====================
-// 拡大率の表示
-// =====================
-
+// 拡大率表示
 function updateZoomLabel() {
 
   document.getElementById("zoomValue")
@@ -666,10 +572,7 @@ function updateZoomLabel() {
 }
 
 
-// =====================
 // 拡大・縮小
-// =====================
-
 slider.addEventListener("input", function() {
 
   if (!selectedPhoto) return;
@@ -683,18 +586,15 @@ slider.addEventListener("input", function() {
 });
 
 
-// =====================
 // リセット
-// =====================
-
 function resetPhoto() {
 
   if (!selectedPhoto) return;
 
   const photo = photos[selectedPhoto];
 
-  photo.x = 0;
-  photo.y = 0;
+  photo.offsetX = 0;
+  photo.offsetY = 0;
   photo.zoom = 1;
 
   slider.value = 1;
@@ -705,10 +605,7 @@ function resetPhoto() {
 }
 
 
-// =====================
-// マウス位置をSVG座標に変換
-// =====================
-
+// マウス・タッチ位置をSVG座標に変換
 function getPoint(event) {
 
   const point = svg.createSVGPoint();
@@ -727,13 +624,10 @@ function getPoint(event) {
 }
 
 
-// =====================
 // ドラッグ開始
-// =====================
-
 svg.addEventListener("pointerdown", function(event) {
 
-  const target = event.target.closest(".photo-area");
+  const target = event.target.closest(".photo-hit");
 
   if (!target) return;
 
@@ -753,10 +647,7 @@ svg.addEventListener("pointerdown", function(event) {
 });
 
 
-// =====================
 // ドラッグ中
-// =====================
-
 svg.addEventListener("pointermove", function(event) {
 
   if (!dragging) return;
@@ -769,8 +660,8 @@ svg.addEventListener("pointermove", function(event) {
 
   const photo = photos[selectedPhoto];
 
-  photo.x += point.x - lastPoint.x;
-  photo.y += point.y - lastPoint.y;
+  photo.offsetX += point.x - lastPoint.x;
+  photo.offsetY += point.y - lastPoint.y;
 
   lastPoint = point;
 
@@ -779,25 +670,15 @@ svg.addEventListener("pointermove", function(event) {
 });
 
 
-// =====================
 // ドラッグ終了
-// =====================
-
 function stopDragging() {
-
   dragging = false;
   lastPoint = null;
-
 }
 
 svg.addEventListener("pointerup", stopDragging);
-
 svg.addEventListener("pointercancel", stopDragging);
-
-svg.addEventListener(
-  "lostpointercapture",
-  stopDragging
-);
+svg.addEventListener("lostpointercapture", stopDragging);
 
 </script>
 
