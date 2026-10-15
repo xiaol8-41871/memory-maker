@@ -57,7 +57,7 @@ h1 {
 
 .photo-hit.selected {
   stroke: #7bb8f5;
-  stroke-width: 4;
+  stroke-width: 3;
   stroke-dasharray: 12 8;
 }
 
@@ -177,46 +177,46 @@ button:hover {
 
 <defs>
 
-  <!-- 音楽プレイヤー -->
+  <!-- 音楽プレイヤー：透明窓に合わせた範囲 -->
   <clipPath id="musicClip">
     <rect
-      x="472"
-      y="300"
+      x="473"
+      y="299"
       width="430"
-      height="414"
+      height="415"
     />
   </clipPath>
 
-  <!-- 記念日カード -->
+  <!-- 記念日カード：透明窓に合わせた範囲 -->
   <clipPath id="dayClip">
     <rect
       x="1280"
-      y="325"
-      width="218"
-      height="210"
+      y="324"
+      width="217"
+      height="212"
     />
   </clipPath>
 
-  <!-- 左チェキ：PNGから測定した写真窓 -->
+  <!-- 左チェキ -->
   <clipPath id="leftClip">
     <polygon
       points="
-        958,620
-        1276,581
-        1328,1010
-        1011,1049
+        957,619
+        1277,580
+        1329,1011
+        1010,1050
       "
     />
   </clipPath>
 
-  <!-- 右チェキ：PNGから測定した写真窓 -->
+  <!-- 右チェキ -->
   <clipPath id="rightClip">
     <polygon
       points="
-        1344,638
-        1661,683
-        1601,1110
-        1283,1065
+        1343,637
+        1662,682
+        1602,1111
+        1282,1066
       "
     />
   </clipPath>
@@ -265,14 +265,12 @@ button:hover {
 <!-- 左チェキ -->
 
 <g clip-path="url(#leftClip)">
-
   <g transform="rotate(-7 958 620)">
     <image
       id="leftPhoto"
       preserveAspectRatio="none"
     />
   </g>
-
 </g>
 
 <image
@@ -288,14 +286,12 @@ button:hover {
 <!-- 右チェキ -->
 
 <g clip-path="url(#rightClip)">
-
   <g transform="rotate(8.08 1344 638)">
     <image
       id="rightPhoto"
       preserveAspectRatio="none"
     />
   </g>
-
 </g>
 
 <image
@@ -308,25 +304,25 @@ button:hover {
 />
 
 
-<!-- 写真操作用エリア -->
+<!-- 写真操作エリア -->
 
 <g id="hitAreas">
 
   <rect
     class="photo-hit"
     data-id="musicPhoto"
-    x="472"
+    x="474"
     y="300"
-    width="430"
-    height="414"
+    width="428"
+    height="413"
   />
 
   <rect
     class="photo-hit"
     data-id="dayPhoto"
-    x="1280"
+    x="1281"
     y="325"
-    width="218"
+    width="215"
     height="210"
   />
 
@@ -358,8 +354,6 @@ button:hover {
 
 </div>
 
-
-<!-- カスタマイズメニュー -->
 
 <div class="controls">
 
@@ -415,7 +409,6 @@ button:hover {
 
 <label class="zoom-control">
   拡大・縮小
-
   <input
     id="zoomSlider"
     type="range"
@@ -439,7 +432,6 @@ button:hover {
 
 <script>
 
-// 写真の名前
 const names = {
   musicPhoto: "ジャケット写真",
   dayPhoto: "記念日カード",
@@ -448,27 +440,25 @@ const names = {
 };
 
 
-// 写真窓の設定
+// 実際の透明窓に合わせた座標
 const frames = {
 
   musicPhoto: {
-    x: 472,
+    x: 474,
     y: 300,
-    w: 430,
-    h: 414,
+    w: 428,
+    h: 413,
     angle: 0
   },
 
   dayPhoto: {
-    x: 1280,
+    x: 1281,
     y: 325,
-    w: 218,
+    w: 215,
     h: 210,
     angle: 0
   },
 
-  // 左チェキ
-  // 回転前の座標を使用
   leftPhoto: {
     x: 958,
     y: 620,
@@ -477,7 +467,6 @@ const frames = {
     angle: -7
   },
 
-  // 右チェキ
   rightPhoto: {
     x: 1344,
     y: 638,
@@ -488,8 +477,6 @@ const frames = {
 
 };
 
-
-// 写真データ
 const photos = {};
 
 let selectedPhoto = null;
@@ -500,7 +487,6 @@ const svg = document.getElementById("mainCanvas");
 const slider = document.getElementById("zoomSlider");
 
 Object.keys(names).forEach(id => {
-
   photos[id] = {
     url: null,
     naturalWidth: 0,
@@ -509,7 +495,6 @@ Object.keys(names).forEach(id => {
     offsetY: 0,
     zoom: 1
   };
-
 });
 
 
@@ -565,10 +550,11 @@ function updatePhoto(id) {
   const frame = frames[id];
   const image = document.getElementById(id);
 
-  // 元画像の縦横比を維持
+  // 縦横比を維持して配置
+  // 初期状態で窓より少し大きくする
   const baseScale = Math.max(
-    frame.w / photo.naturalWidth,
-    frame.h / photo.naturalHeight
+    (frame.w + 6) / photo.naturalWidth,
+    (frame.h + 6) / photo.naturalHeight
   );
 
   const scale = baseScale * photo.zoom;
@@ -576,7 +562,6 @@ function updatePhoto(id) {
   const width = photo.naturalWidth * scale;
   const height = photo.naturalHeight * scale;
 
-  // 写真を枠の中央に配置
   const x =
     frame.x +
     (frame.w - width) / 2 +
@@ -602,12 +587,10 @@ function selectPhoto(id) {
 
   document.querySelectorAll(".photo-hit")
     .forEach(area => {
-
       area.classList.toggle(
         "selected",
         area.dataset.id === id
       );
-
     });
 
   document.getElementById("editingTitle")
@@ -663,7 +646,7 @@ function resetPhoto() {
 }
 
 
-// マウス・タッチ位置をSVG座標に変換
+// SVG座標への変換
 function getPoint(event) {
 
   const point = svg.createSVGPoint();
@@ -672,7 +655,6 @@ function getPoint(event) {
   point.y = event.clientY;
 
   const matrix = svg.getScreenCTM();
-
   if (!matrix) return null;
 
   return point.matrixTransform(
@@ -697,7 +679,6 @@ svg.addEventListener("pointerdown", function(event) {
   lastPoint = getPoint(event);
 
   svg.setPointerCapture(event.pointerId);
-
   event.preventDefault();
 
 });
@@ -717,7 +698,6 @@ svg.addEventListener("pointermove", function(event) {
   const dx = point.x - lastPoint.x;
   const dy = point.y - lastPoint.y;
 
-  // 回転したチェキでも自然に動かせるように補正
   const radians = -frame.angle * Math.PI / 180;
 
   photo.offsetX +=
