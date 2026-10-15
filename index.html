@@ -1,239 +1,490 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Memory Maker</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memory Maker</title>
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+<style>
+* {
+  box-sizing: border-box;
+}
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      padding: 30px 16px;
-      background: #eaf4ff;
-      font-family: sans-serif;
-      text-align: center;
-    }
+body {
+  margin: 0;
+  padding: 30px 16px;
+  min-height: 100vh;
+  background: #eaf4ff;
+  font-family: sans-serif;
+  text-align: center;
+}
 
-    h1 {
-      color: #729bc5;
-      font-size: 26px;
-      margin-bottom: 25px;
-    }
+h1 {
+  color: #729bc5;
+  font-size: 26px;
+  margin-bottom: 25px;
+}
 
-    .canvas {
-      position: relative;
-      width: 100%;
-      max-width: 900px;
-      aspect-ratio: 2048 / 1430;
-      margin: 0 auto;
-      background: #c9e4f8;
-      overflow: hidden;
-    }
+.canvas {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  aspect-ratio: 2048 / 1430;
+  margin: auto;
+  background: #c9e4f8;
+  overflow: hidden;
+}
 
-    .canvas > img,
-    .photo-layer {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-    }
+.canvas > img,
+.photo-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
 
-    .canvas > img {
-      pointer-events: none;
-    }
+.canvas > img {
+  pointer-events: none;
+}
 
-    .photo-layer {
-      z-index: 1;
-    }
+.photo-layer {
+  z-index: 1;
+  touch-action: none;
+}
 
-    .canvas > img {
-      z-index: 2;
-    }
+.canvas > img {
+  z-index: 2;
+}
 
-    .canvas > img:nth-of-type(2) {
-      z-index: 4;
-    }
+.canvas > img:nth-of-type(2) {
+  z-index: 4;
+}
 
-    .canvas > img:nth-of-type(3) {
-      z-index: 6;
-    }
+.canvas > img:nth-of-type(3) {
+  z-index: 6;
+}
 
-    .canvas > img:nth-of-type(4) {
-      z-index: 8;
-    }
+.canvas > img:nth-of-type(4) {
+  z-index: 8;
+}
 
-    .photo-layer image {
-      width: 100%;
-      height: 100%;
-    }
+.photo-hit {
+  fill: transparent;
+  cursor: grab;
+  pointer-events: all;
+}
 
-    .controls {
-      max-width: 600px;
-      margin: 30px auto;
-      padding: 25px;
-      background: white;
-      border-radius: 18px;
-    }
+.photo-hit:active {
+  cursor: grabbing;
+}
 
-    .controls h2 {
-      font-size: 18px;
-      color: #729bc5;
-      margin-top: 0;
-    }
+.photo-hit.selected {
+  stroke: #83baff;
+  stroke-width: 5;
+  stroke-dasharray: 12 8;
+}
 
-    .upload {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin: 15px 0;
-      font-size: 14px;
-      color: #555;
-    }
+.controls {
+  max-width: 600px;
+  margin: 30px auto;
+  padding: 25px;
+  background: white;
+  border-radius: 18px;
+}
 
-    .upload input {
-      width: 55%;
-      min-width: 0;
-    }
+.controls h2 {
+  color: #729bc5;
+  font-size: 19px;
+}
 
-    @media (max-width: 500px) {
-      .upload {
-        flex-direction: column;
-        align-items: flex-start;
-      }
+.upload {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+  color: #555;
+  font-size: 14px;
+}
 
-      .upload input {
-        width: 100%;
-      }
-    }
-  </style>
+.upload input {
+  width: 55%;
+  min-width: 0;
+}
+
+.editor {
+  margin-top: 25px;
+  padding: 20px;
+  border-radius: 14px;
+  background: #f0f7ff;
+}
+
+.editor h3 {
+  margin-top: 0;
+  color: #729bc5;
+}
+
+.editor input[type="range"] {
+  width: 85%;
+  accent-color: #729bc5;
+}
+
+button {
+  margin-top: 15px;
+  padding: 10px 22px;
+  background: #93bce4;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #729bc5;
+}
+
+.hint {
+  font-size: 13px;
+  color: #777;
+  line-height: 1.7;
+}
+
+@media (max-width: 500px) {
+  .upload {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .upload input {
+    width: 100%;
+  }
+}
+</style>
 </head>
 
 <body>
 
-  <h1>Memory Maker ♡</h1>
+<h1>Memory Maker ♡</h1>
 
-  <div class="canvas">
+<div class="canvas">
 
-    <svg
-      class="photo-layer"
-      viewBox="0 0 2048 1430"
-      preserveAspectRatio="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
+  <svg
+    id="photoCanvas"
+    class="photo-layer"
+    viewBox="0 0 2048 1430"
+    preserveAspectRatio="none"
+  >
 
-      <defs>
-        <clipPath id="musicClip">
-          <rect x="472" y="300" width="430" height="414"/>
-        </clipPath>
+    <defs>
+      <clipPath id="musicClip">
+        <rect x="472" y="300" width="430" height="414"/>
+      </clipPath>
 
-        <clipPath id="dayClip">
-          <rect x="1280" y="325" width="218" height="210"/>
-        </clipPath>
+      <clipPath id="dayClip">
+        <rect x="1280" y="325" width="218" height="210"/>
+      </clipPath>
 
-        <clipPath id="polaroid1Clip">
-          <polygon points="958,627 1275,584 1328,1011 1010,1050"/>
-        </clipPath>
+      <clipPath id="polaroid1Clip">
+        <polygon points="958,627 1275,584 1328,1011 1010,1050"/>
+      </clipPath>
 
-        <clipPath id="polaroid2Clip">
-          <polygon points="1345,639 1661,684 1600,1107 1283,1067"/>
-        </clipPath>
-      </defs>
+      <clipPath id="polaroid2Clip">
+        <polygon points="1345,639 1661,684 1600,1107 1283,1067"/>
+      </clipPath>
+    </defs>
 
-      <image
-        id="musicPhoto"
-        x="472" y="300"
-        width="430" height="414"
-        preserveAspectRatio="xMidYMid slice"
-        clip-path="url(#musicClip)"
-      />
+    <g clip-path="url(#musicClip)">
+      <image id="musicPhoto"
+        x="472" y="300" width="430" height="414"
+        preserveAspectRatio="xMidYMid slice"/>
+    </g>
 
-      <image
-        id="dayPhoto"
-        x="1280" y="325"
-        width="218" height="210"
-        preserveAspectRatio="xMidYMid slice"
-        clip-path="url(#dayClip)"
-      />
+    <g clip-path="url(#dayClip)">
+      <image id="dayPhoto"
+        x="1280" y="325" width="218" height="210"
+        preserveAspectRatio="xMidYMid slice"/>
+    </g>
 
-      <image
-        id="polaroid1Photo"
-        x="950" y="580"
-        width="390" height="480"
-        preserveAspectRatio="xMidYMid slice"
-        clip-path="url(#polaroid1Clip)"
-      />
+    <g clip-path="url(#polaroid1Clip)">
+      <image id="polaroid1Photo"
+        x="950" y="580" width="390" height="480"
+        preserveAspectRatio="xMidYMid slice"/>
+    </g>
 
-      <image
-        id="polaroid2Photo"
-        x="1270" y="630"
-        width="410" height="490"
-        preserveAspectRatio="xMidYMid slice"
-        clip-path="url(#polaroid2Clip)"
-      />
+    <g clip-path="url(#polaroid2Clip)">
+      <image id="polaroid2Photo"
+        x="1270" y="630" width="410" height="490"
+        preserveAspectRatio="xMidYMid slice"/>
+    </g>
 
-    </svg>
+  </svg>
 
-    <img src="images/musicplayer.PNG" alt="">
-    <img src="images/d_day.PNG" alt="">
-    <img src="images/polaroid_1.PNG" alt="">
-    <img src="images/polaroid_2.PNG" alt="">
+  <img src="images/musicplayer.PNG" alt="">
+  <img src="images/d_day.PNG" alt="">
+  <img src="images/polaroid_1.PNG" alt="">
+  <img src="images/polaroid_2.PNG" alt="">
+
+  <svg
+    id="hitCanvas"
+    class="photo-layer"
+    viewBox="0 0 2048 1430"
+    preserveAspectRatio="none"
+    style="z-index: 10;"
+  >
+    <rect class="photo-hit"
+      data-id="musicPhoto"
+      x="472" y="300" width="430" height="414"/>
+
+    <rect class="photo-hit"
+      data-id="dayPhoto"
+      x="1280" y="325" width="218" height="210"/>
+
+    <polygon class="photo-hit"
+      data-id="polaroid1Photo"
+      points="958,627 1275,584 1328,1011 1010,1050"/>
+
+    <polygon class="photo-hit"
+      data-id="polaroid2Photo"
+      points="1345,639 1661,684 1600,1107 1283,1067"/>
+  </svg>
+
+</div>
+
+<div class="controls">
+
+  <h2>♡ Customize ♡</h2>
+
+  <label class="upload">
+    🎵 ジャケット写真
+    <input type="file" accept="image/*"
+      onchange="setPhoto(event, 'musicPhoto')">
+  </label>
+
+  <label class="upload">
+    ♡ 記念日カード
+    <input type="file" accept="image/*"
+      onchange="setPhoto(event, 'dayPhoto')">
+  </label>
+
+  <label class="upload">
+    📷 チェキ左
+    <input type="file" accept="image/*"
+      onchange="setPhoto(event, 'polaroid1Photo')">
+  </label>
+
+  <label class="upload">
+    📷 チェキ右
+    <input type="file" accept="image/*"
+      onchange="setPhoto(event, 'polaroid2Photo')">
+  </label>
+
+  <div class="editor">
+
+    <h3 id="editingTitle">写真を選択してください ♡</h3>
+
+    <p class="hint">
+      プレビュー内の写真をクリックして選択できます。<br>
+      ドラッグで位置を調整できます。
+    </p>
+
+    <label>
+      拡大・縮小
+      <br><br>
+      <input
+        id="zoomSlider"
+        type="range"
+        min="1"
+        max="4"
+        step="0.01"
+        value="1"
+      >
+    </label>
+
+    <p id="zoomValue">100%</p>
+
+    <button onclick="resetPhoto()">
+      ↩ 位置をリセット
+    </button>
 
   </div>
 
-  <div class="controls">
+</div>
 
-    <h2>♡ Customize ♡</h2>
+<script>
+const names = {
+  musicPhoto: "ジャケット写真",
+  dayPhoto: "記念日カード",
+  polaroid1Photo: "チェキ左",
+  polaroid2Photo: "チェキ右"
+};
 
-    <label class="upload">
-      🎵 ジャケット写真
-      <input type="file" accept="image/*"
-        onchange="setPhoto(event, 'musicPhoto')">
-    </label>
+const photoSettings = {};
 
-    <label class="upload">
-      ♡ 記念日カード
-      <input type="file" accept="image/*"
-        onchange="setPhoto(event, 'dayPhoto')">
-    </label>
+let selectedPhoto = null;
+let dragging = false;
+let lastPoint = null;
 
-    <label class="upload">
-      📷 チェキ左
-      <input type="file" accept="image/*"
-        onchange="setPhoto(event, 'polaroid1Photo')">
-    </label>
+const svg = document.getElementById("hitCanvas");
+const slider = document.getElementById("zoomSlider");
 
-    <label class="upload">
-      📷 チェキ右
-      <input type="file" accept="image/*"
-        onchange="setPhoto(event, 'polaroid2Photo')">
-    </label>
+Object.keys(names).forEach(id => {
+  const image = document.getElementById(id);
 
-  </div>
+  const x = Number(image.getAttribute("x"));
+  const y = Number(image.getAttribute("y"));
+  const width = Number(image.getAttribute("width"));
+  const height = Number(image.getAttribute("height"));
 
-  <script>
-    const photoURLs = {};
+  photoSettings[id] = {
+    x: 0,
+    y: 0,
+    scale: 1,
+    cx: x + width / 2,
+    cy: y + height / 2,
+    url: null
+  };
+});
 
-    function setPhoto(event, id) {
-      const file = event.target.files[0];
-      if (!file) return;
+function setPhoto(event, id) {
+  const file = event.target.files[0];
+  if (!file) return;
 
-      if (photoURLs[id]) {
-        URL.revokeObjectURL(photoURLs[id]);
-      }
+  const settings = photoSettings[id];
 
-      const url = URL.createObjectURL(file);
-      photoURLs[id] = url;
+  if (settings.url) {
+    URL.revokeObjectURL(settings.url);
+  }
 
-      const image = document.getElementById(id);
-      image.setAttribute('href', url);
-    }
-  </script>
+  settings.url = URL.createObjectURL(file);
+
+  document.getElementById(id)
+    .setAttribute("href", settings.url);
+
+  selectPhoto(id);
+}
+
+function selectPhoto(id) {
+  selectedPhoto = id;
+
+  document.querySelectorAll(".photo-hit")
+    .forEach(element => {
+      element.classList.toggle(
+        "selected",
+        element.dataset.id === id
+      );
+    });
+
+  document.getElementById("editingTitle")
+    .textContent = "編集中：" + names[id];
+
+  const scale = photoSettings[id].scale;
+
+  slider.value = scale;
+
+  document.getElementById("zoomValue")
+    .textContent = Math.round(scale * 100) + "%";
+}
+
+function updatePhoto(id) {
+  const settings = photoSettings[id];
+  const image = document.getElementById(id);
+
+  image.setAttribute(
+    "transform",
+    `translate(${settings.x} ${settings.y})
+     translate(${settings.cx} ${settings.cy})
+     scale(${settings.scale})
+     translate(${-settings.cx} ${-settings.cy})`
+  );
+}
+
+slider.addEventListener("input", () => {
+  if (!selectedPhoto) return;
+
+  const scale = Number(slider.value);
+
+  photoSettings[selectedPhoto].scale = scale;
+
+  updatePhoto(selectedPhoto);
+
+  document.getElementById("zoomValue")
+    .textContent = Math.round(scale * 100) + "%";
+});
+
+function resetPhoto() {
+  if (!selectedPhoto) return;
+
+  const settings = photoSettings[selectedPhoto];
+
+  settings.x = 0;
+  settings.y = 0;
+  settings.scale = 1;
+
+  slider.value = 1;
+
+  document.getElementById("zoomValue")
+    .textContent = "100%";
+
+  updatePhoto(selectedPhoto);
+}
+
+function getPoint(event) {
+  const point = svg.createSVGPoint();
+
+  point.x = event.clientX;
+  point.y = event.clientY;
+
+  const matrix = svg.getScreenCTM();
+
+  if (!matrix) return null;
+
+  return point.matrixTransform(matrix.inverse());
+}
+
+svg.addEventListener("pointerdown", event => {
+  const target = event.target.closest(".photo-hit");
+
+  if (!target) return;
+
+  const id = target.dataset.id;
+
+  if (!photoSettings[id].url) return;
+
+  selectPhoto(id);
+
+  dragging = true;
+  lastPoint = getPoint(event);
+
+  svg.setPointerCapture(event.pointerId);
+
+  event.preventDefault();
+});
+
+svg.addEventListener("pointermove", event => {
+  if (!dragging || !selectedPhoto || !lastPoint) return;
+
+  const point = getPoint(event);
+  if (!point) return;
+
+  const settings = photoSettings[selectedPhoto];
+
+  settings.x += point.x - lastPoint.x;
+  settings.y += point.y - lastPoint.y;
+
+  lastPoint = point;
+
+  updatePhoto(selectedPhoto);
+});
+
+function stopDragging() {
+  dragging = false;
+  lastPoint = null;
+}
+
+svg.addEventListener("pointerup", stopDragging);
+svg.addEventListener("pointercancel", stopDragging);
+svg.addEventListener("lostpointercapture", stopDragging);
+</script>
 
 </body>
 </html>
