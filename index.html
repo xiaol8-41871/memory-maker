@@ -1849,43 +1849,33 @@ svg.addEventListener(
   }
   const frameMatrix=makeColorFilter("memorySafeFrameTint",state.frame);
 
-  // The original musicplayer.PNG contains opaque white paper BEHIND the icons.
-  // Painting another clipped copy of that PNG produces a visible white rectangle
-  // on the translucent player. Keep only the dark seek bar / button ink here:
-  // dark pixels become the selected color; white pixels become transparent.
-  // This does not replace, crop, resize or regenerate any frame image.
+  // Only the original seekbar and button ink is stored below as a small
+  // transparent PNG. It has NO paper/background pixels. Unlike a second copy
+  // of musicplayer.PNG, it cannot produce a bright rectangular patch.
+  // The original frame PNG, its dimensions and its opacity stay unchanged.
   function controlsInkValues(hex) {
     const rgb = [1,3,5].map(i => parseInt(hex.slice(i,i+2),16)/255);
-    return `0 0 0 0 ${rgb[0]}  0 0 0 0 ${rgb[1]}  0 0 0 0 ${rgb[2]}  -1 0 0 0 1`;
+    // Make the visible pixels one solid color but KEEP source alpha unchanged.
+    return `0 0 0 0 ${rgb[0]}  0 0 0 0 ${rgb[1]}  0 0 0 0 ${rgb[2]}  0 0 0 1 0`;
   }
   const controlsMatrix=makeColorFilter("memorySafeControlsTint",state.controls);
   controlsMatrix.setAttribute("values",controlsInkValues(state.controls));
 
-  // Clip the separately tinted playback buttons and seek bar to their
-  // original area. Both copies load the ORIGINAL full-size PNG, not data URLs.
-  const clip=document.createElementNS(NS,"clipPath");
-  clip.id="memoryControlsClip";
-  clip.setAttribute("clipPathUnits","userSpaceOnUse");
-  const rect=document.createElementNS(NS,"rect");
-  rect.setAttribute("x","473"); rect.setAttribute("y","868");
-  rect.setAttribute("width","450"); rect.setAttribute("height","245");
-  clip.appendChild(rect); defs.appendChild(clip);
   framesOnCanvas.forEach((frame,i) => {
     frame.setAttribute("filter","url(#memorySafeFrameTint)");
-    // Mild translucency preserves the background-through-white-card effect.
     if (i < 2) frame.setAttribute("opacity","0.91");
-    // Leave x/y/width/height/href exactly as they are in the working version.
+    // Preserve original image href and x/y/width/height. No frame recompositing.
   });
   const musicFrame=framesOnCanvas[0];
   const controlsOverlay=document.createElementNS(NS,"image");
-  controlsOverlay.setAttribute("href","images/musicplayer.PNG");
-  controlsOverlay.setAttribute("x","0"); controlsOverlay.setAttribute("y","0");
-  controlsOverlay.setAttribute("width","2048");
-  controlsOverlay.setAttribute("height","1430");
+  controlsOverlay.setAttribute("href", "data:image/png;base64,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");
+  controlsOverlay.setAttribute("x","473"); controlsOverlay.setAttribute("y","868");
+  controlsOverlay.setAttribute("width","450");
+  controlsOverlay.setAttribute("height","245");
   controlsOverlay.setAttribute("pointer-events","none");
-  controlsOverlay.setAttribute("clip-path","url(#memoryControlsClip)");
   controlsOverlay.setAttribute("filter","url(#memorySafeControlsTint)");
-  controlsOverlay.setAttribute("opacity","0.91");
+  // At full opacity, chosen colors hide the original dark icons beneath.
+  controlsOverlay.setAttribute("opacity","1");
   musicFrame.parentNode.insertBefore(controlsOverlay,musicFrame.nextSibling);
 
   function updateText() {
