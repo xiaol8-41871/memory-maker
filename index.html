@@ -1972,16 +1972,19 @@ svg.addEventListener(
     return r * 0.2126 + g * 0.7152 + b * 0.0722 > 205;
   }
 
-  const SHADOW_PADDING = 55;
-
   function renderOne(path) {
     const p = prepared.get(path);
     const target = targets.find(t => t.dataset.originalPath === path);
     if (!p || !target) return;
 
-    const pad = SHADOW_PADDING;
-    const output = canvas(p.w + pad * 2, p.h + pad * 2);
+    // Keep every displayed overlay exactly the same 2048×1430 SVG size
+    // and origin as the original PNG. Safari can render cropped SVG <image>
+    // data URLs at unexpected scales or positions when its geometry changes.
+    // Recolor and paint the shadow on a full-size transparent canvas instead.
+    const output = canvas(2048, 1430);
     const ctx = output.getContext("2d");
+    const frameX = p.x;
+    const frameY = p.y;
 
     // Paint the soft drop shadow directly onto a padded transparent canvas.
     // No SVG filter is applied to the image, keeping coordinates consistent.
@@ -1992,11 +1995,11 @@ svg.addEventListener(
       ctx.shadowBlur = 24;
       ctx.shadowOffsetX = 8;
       ctx.shadowOffsetY = 12;
-      ctx.drawImage(p.paper, pad, pad);
+      ctx.drawImage(p.paper, frameX, frameY);
       ctx.restore();
     }
 
-    ctx.drawImage(p.paper, pad, pad);
+    ctx.drawImage(p.paper, frameX, frameY);
 
     // A tiny grey-blue edge preserves contrast for white / pale outlines.
     function drawInk(mask, color) {
@@ -2006,10 +2009,10 @@ svg.addEventListener(
         ctx.shadowColor = "rgba(55, 77, 100, 0.60)";
         ctx.shadowBlur = 5;
         ctx.shadowOffsetY = 1;
-        ctx.drawImage(tinted, pad, pad);
+        ctx.drawImage(tinted, frameX, frameY);
         ctx.restore();
       } else {
-        ctx.drawImage(tinted, pad, pad);
+        ctx.drawImage(tinted, frameX, frameY);
       }
     }
 
@@ -2018,12 +2021,13 @@ svg.addEventListener(
       drawInk(p.controlMask, state.match ? state.frame : state.controls);
     }
 
-    // Crop positions are SVG canvas coordinates, not screen pixels.
+    // Never alter frame geometry. Only its artwork changes.
+    // The photo masks, hit areas and text continue sharing the same coordinates.
     target.removeAttribute("filter");
-    target.setAttribute("x", p.x - pad);
-    target.setAttribute("y", p.y - pad);
-    target.setAttribute("width", output.width);
-    target.setAttribute("height", output.height);
+    target.setAttribute("x", "0");
+    target.setAttribute("y", "0");
+    target.setAttribute("width", "2048");
+    target.setAttribute("height", "1430");
     target.setAttribute("preserveAspectRatio", "none");
     target.setAttribute("href", output.toDataURL("image/png"));
   }
