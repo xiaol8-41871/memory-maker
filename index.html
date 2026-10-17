@@ -396,6 +396,47 @@ h1 {
 }
 .frame-swatch-black { background: #171717; border: 1px solid #171717; }
 .frame-swatch-white { background: #fff; border: 1px solid #b3c0d0; }
+
+/* COLORS & STYLE */
+.color-setting { margin-top: 19px; }
+.color-setting:first-of-type { margin-top: 0; }
+.color-setting-title {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; margin-bottom: 11px;
+  font-size: 12px; font-weight: 700; color: #729bc5;
+}
+.color-palette { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.color-preset {
+  width: 33px; height: 33px; border-radius: 50%;
+  background: var(--swatch); border: 2px solid #fff;
+  box-shadow: 0 0 0 1px #d1dce9;
+  padding: 0; cursor: pointer; flex-shrink: 0;
+}
+.color-preset:hover { transform: scale(1.08); }
+.color-preset.is-active { box-shadow: 0 0 0 2.5px #83b5e4; }
+.color-preset:focus-visible, .color-custom:focus-within {
+  outline: 2px solid #729bc5; outline-offset: 4px;
+}
+.color-custom { display: inline-flex; gap: 7px; align-items: center; color: #729bc5; font-size: 12px; font-weight: 600; cursor: pointer; }
+.color-custom input[type="color"] {
+  -webkit-appearance: none; appearance: none;
+  width: 34px; height: 34px; border: 2px solid white; border-radius: 50%;
+  box-shadow: 0 0 0 1px #c6d8e9; padding: 0; overflow: hidden;
+  cursor: pointer; background: transparent;
+}
+.color-custom input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+.color-custom input[type="color"]::-webkit-color-swatch { border: 0; border-radius: 50%; }
+.color-custom input[type="color"]::-moz-color-swatch { border: 0; border-radius: 50%; }
+.color-match { display: inline-flex; align-items: center; gap: 9px; color: #647d94; font-size: 12px; cursor: pointer; margin: 2px 0 0; }
+.color-match input { width: 16px; height: 16px; accent-color: #87b4df; cursor: pointer; }
+#controlsColors[hidden], #shadowSettings[hidden] { display: none !important; }
+.shadow-heading { display: flex; justify-content: space-between; align-items: center; gap: 14px; }
+.shadow-heading .color-setting-title { margin-bottom: 0; }
+.shadow-toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: #6789a9; cursor: pointer; }
+.shadow-toggle input { width: 17px; height: 17px; accent-color: #89b6de; }
+.shadow-strength { display: flex; justify-content: space-between; gap: 10px; margin-top: 19px; font-weight: bold; font-size: 12px; color: #729bc5; }
+#shadowStrength { display: block; width: 100%; margin: 12px 0 3px; accent-color: #87b6e5; cursor: pointer; }
+@media (max-width: 420px) { .color-palette { gap: 10px; } }
 </style>
 </head>
 
@@ -740,20 +781,77 @@ h1 {
     </section>
 
     <section class="custom-section" aria-labelledby="frameStyleSectionTitle">
-      <p class="section-title" id="frameStyleSectionTitle">06 / FRAME STYLE</p>
-      <div class="frame-style-choices" role="group" aria-label="Frame outline color">
-        <label class="frame-choice">
-          <input type="radio" name="frameStyle" value="black" checked>
-          <span class="frame-swatch frame-swatch-black" aria-hidden="true"></span>
-          Black
-        </label>
-        <label class="frame-choice">
-          <input type="radio" name="frameStyle" value="white">
-          <span class="frame-swatch frame-swatch-white" aria-hidden="true"></span>
-          White
-        </label>
+      <p class="section-title" id="frameStyleSectionTitle">06 / COLORS &amp; STYLE</p>
+
+      <div class="color-setting">
+        <div class="color-setting-title">Frame Color</div>
+      <div class="color-palette" role="group" aria-label="Frame color choices">
+        <button type="button" class="color-preset is-active" data-color-target="frame" data-color="#171717" style="--swatch:#171717" aria-label="Black" title="Black" aria-pressed="true"></button>
+        <button type="button" class="color-preset" data-color-target="frame" data-color="#ffffff" style="--swatch:#ffffff" aria-label="White" title="White" aria-pressed="false"></button>
+        <button type="button" class="color-preset" data-color-target="frame" data-color="#99c9ec" style="--swatch:#99c9ec" aria-label="Baby Blue" title="Baby Blue" aria-pressed="false"></button>
+        <button type="button" class="color-preset" data-color-target="frame" data-color="#e6a8c2" style="--swatch:#e6a8c2" aria-label="Blush Pink" title="Blush Pink" aria-pressed="false"></button>
+        <button type="button" class="color-preset" data-color-target="frame" data-color="#b7a4df" style="--swatch:#b7a4df" aria-label="Lavender" title="Lavender" aria-pressed="false"></button>
+        <button type="button" class="color-preset" data-color-target="frame" data-color="#7e9aa5" style="--swatch:#7e9aa5" aria-label="Blue Grey" title="Blue Grey" aria-pressed="false"></button>
+        <label class="color-custom" title="Choose any color"><input id="frameColorPicker" data-custom-color="frame" type="color" value="#171717" aria-label="Custom frame color"><span>Custom</span></label>
       </div>
-      <p class="section-hint">Changes frame outlines, music controls and the seekbar together. Text stays dark for readability ♡</p>
+      </div>
+
+      <div class="color-setting">
+        <div class="color-setting-title">Text Color</div>
+      <div class="color-palette" role="group" aria-label="Text color choices">
+        <button type="button" class="color-preset is-active" data-color-target="text" data-color="#202020" style="--swatch:#202020" aria-label="Charcoal" title="Charcoal" aria-pressed="true"></button>
+        <button type="button" class="color-preset" data-color-target="text" data-color="#ffffff" style="--swatch:#ffffff" aria-label="White" title="White" aria-pressed="false"></button>
+        <button type="button" class="color-preset" data-color-target="text" data-color="#729bc5" style="--swatch:#729bc5" aria-label="Blue" title="Blue" aria-pressed="false"></button>
+        <button type="button" class="color-preset" data-color-target="text" data-color="#bf819c" style="--swatch:#bf819c" aria-label="Rose" title="Rose" aria-pressed="false"></button>
+        <button type="button" class="color-preset" data-color-target="text" data-color="#9a8bc1" style="--swatch:#9a8bc1" aria-label="Lilac" title="Lilac" aria-pressed="false"></button>
+        <button type="button" class="color-preset" data-color-target="text" data-color="#586d80" style="--swatch:#586d80" aria-label="Slate" title="Slate" aria-pressed="false"></button>
+        <label class="color-custom" title="Choose any color"><input id="textColorPicker" data-custom-color="text" type="color" value="#202020" aria-label="Custom text color"><span>Custom</span></label>
+      </div>
+        <p class="section-hint">Song, artist and D-Day text change together.</p>
+      </div>
+
+      <div class="color-setting">
+        <div class="color-setting-title">Player Controls</div>
+        <label class="color-match" for="matchFrameColor">
+          <input type="checkbox" id="matchFrameColor" checked>
+          Match Frame Color ♡
+        </label>
+        <div id="controlsColors" style="margin-top:13px;" hidden>
+      <div class="color-palette" role="group" aria-label="Controls color choices">
+        <button type="button" class="color-preset is-active" data-color-target="controls" data-color="#171717" style="--swatch:#171717" aria-label="Black" title="Black" aria-pressed="true"></button>
+        <button type="button" class="color-preset" data-color-target="controls" data-color="#ffffff" style="--swatch:#ffffff" aria-label="White" title="White" aria-pressed="false"></button>
+        <button type="button" class="color-preset" data-color-target="controls" data-color="#99c9ec" style="--swatch:#99c9ec" aria-label="Baby Blue" title="Baby Blue" aria-pressed="false"></button>
+        <button type="button" class="color-preset" data-color-target="controls" data-color="#e6a8c2" style="--swatch:#e6a8c2" aria-label="Blush Pink" title="Blush Pink" aria-pressed="false"></button>
+        <button type="button" class="color-preset" data-color-target="controls" data-color="#b7a4df" style="--swatch:#b7a4df" aria-label="Lavender" title="Lavender" aria-pressed="false"></button>
+        <button type="button" class="color-preset" data-color-target="controls" data-color="#7e9aa5" style="--swatch:#7e9aa5" aria-label="Blue Grey" title="Blue Grey" aria-pressed="false"></button>
+        <label class="color-custom" title="Choose any color"><input id="controlsColorPicker" data-custom-color="controls" type="color" value="#171717" aria-label="Custom controls color"><span>Custom</span></label>
+      </div>
+        </div>
+      </div>
+
+      <div class="color-setting">
+        <div class="shadow-heading">
+          <span class="color-setting-title">Drop Shadow</span>
+          <label class="shadow-toggle" for="shadowEnabled">
+            <input id="shadowEnabled" type="checkbox" checked> ON / OFF
+          </label>
+        </div>
+        <div id="shadowSettings" style="margin-top:15px;">
+          <div class="color-setting-title">Shadow Color</div>
+      <div class="color-palette" role="group" aria-label="Shadow color choices">
+        <button type="button" class="color-preset is-active" data-color-target="shadow" data-color="#819bb4" style="--swatch:#819bb4" aria-label="Blue Grey" title="Blue Grey" aria-pressed="true"></button>
+        <button type="button" class="color-preset" data-color-target="shadow" data-color="#202b3a" style="--swatch:#202b3a" aria-label="Dark" title="Dark" aria-pressed="false"></button>
+        <button type="button" class="color-preset" data-color-target="shadow" data-color="#ffffff" style="--swatch:#ffffff" aria-label="White" title="White" aria-pressed="false"></button>
+        <button type="button" class="color-preset" data-color-target="shadow" data-color="#b7a4df" style="--swatch:#b7a4df" aria-label="Lavender" title="Lavender" aria-pressed="false"></button>
+        <button type="button" class="color-preset" data-color-target="shadow" data-color="#e6a8c2" style="--swatch:#e6a8c2" aria-label="Pink" title="Pink" aria-pressed="false"></button>
+        <button type="button" class="color-preset" data-color-target="shadow" data-color="#8fc6dc" style="--swatch:#8fc6dc" aria-label="Light Blue" title="Light Blue" aria-pressed="false"></button>
+        <label class="color-custom" title="Choose any color"><input id="shadowColorPicker" data-custom-color="shadow" type="color" value="#819bb4" aria-label="Custom shadow color"><span>Custom</span></label>
+      </div>
+          <label class="shadow-strength" for="shadowStrength"><span>Shadow Strength</span><span id="shadowStrengthValue">35%</span></label>
+          <input id="shadowStrength" type="range" min="0" max="100" step="1" value="35">
+        </div>
+      </div>
+      <p class="section-hint">Choose a preset or open the color picker for your own shade. The soft shadow follows all four frames ♡</p>
     </section>
 
 
@@ -1746,130 +1844,249 @@ svg.addEventListener(
 </script>
 
 <script>
-/* ===== FRAME STYLE: BLACK / WHITE =====
-   Use the existing PNG assets unchanged, with a soft 87% white surface for
-   Music Player and D-Day. Black or white ink applies to all four frame
-   outlines, including the music player's seekbar and playback icons.
-   Photo masks continue to use the original PNGs, never these display copies.
+/* ===== CUSTOM COLORS + SOFT SHADOWS =====
+   The four original PNGs are only read here; their photo masks and
+   the rest of the Memory Maker remain unchanged.
 */
 (function () {
+  const NS = "http://www.w3.org/2000/svg";
   const PATHS = [
     "images/musicplayer.PNG", "images/d_day.PNG",
     "images/polaroid_1.PNG", "images/polaroid_2.PNG"
   ];
-  const WHITE_OPACITY = 0.87;
-  const NS = "http://www.w3.org/2000/svg";
-  const targets = Array.from(document.querySelectorAll("#mainCanvas image.frame"));
-  const radios = Array.from(document.querySelectorAll('input[name="frameStyle"]'));
-  const variants = new Map();
-  let choice = "black";
+  const targets = [...document.querySelectorAll("#mainCanvas image.frame")];
+  const prepared = new Map();
+  const state = {
+    frame: "#171717", text: "#202020", controls: "#171717",
+    shadow: "#819bb4", shadowStrength: 35, shadowEnabled: true,
+    match: true
+  };
+  const matchCheckbox = document.getElementById("matchFrameColor");
+  const controlsColors = document.getElementById("controlsColors");
+  const shadowCheckbox = document.getElementById("shadowEnabled");
+  const shadowSettings = document.getElementById("shadowSettings");
+  const strengthSlider = document.getElementById("shadowStrength");
+  const strengthValue = document.getElementById("shadowStrengthValue");
+  const clamp = n => Math.max(0, Math.min(1, n));
 
-  const clamp = x => Math.min(1, Math.max(0, x));
-  function makeCanvas(width, height) {
-    const c = document.createElement("canvas");
-    c.width = width;
-    c.height = height;
-    return c;
+  function canvas(w, h) {
+    const el = document.createElement("canvas");
+    el.width = w; el.height = h;
+    return el;
   }
 
-  async function buildVariants(path) {
+  function svgNode(tag, attrs) {
+    const el = document.createElementNS(NS, tag);
+    Object.entries(attrs || {}).forEach(([k, v]) => el.setAttribute(k, v));
+    return el;
+  }
+
+  // SVG shadows are attached to display frames only, never to the photos.
+  const defs = document.querySelector("#mainCanvas defs");
+  const filter = svgNode("filter", { id: "memorySoftShadow", x: "-28%", y: "-28%", width: "156%", height: "160%", "color-interpolation-filters": "sRGB" });
+  const blur = svgNode("feGaussianBlur", { in: "SourceAlpha", stdDeviation: "15", result: "blurred" });
+  const offset = svgNode("feOffset", { in: "blurred", dx: "8", dy: "12", result: "shifted" });
+  const flood = svgNode("feFlood", { "flood-color": state.shadow, "flood-opacity": "0.30", result: "colored" });
+  const clipped = svgNode("feComposite", { in: "colored", in2: "shifted", operator: "in", result: "shadow" });
+  const merge = svgNode("feMerge");
+  merge.appendChild(svgNode("feMergeNode", { in: "shadow" }));
+  merge.appendChild(svgNode("feMergeNode", { in: "SourceGraphic" }));
+  [blur, offset, flood, clipped, merge].forEach(node => filter.appendChild(node));
+  defs.appendChild(filter);
+
+  function updateShadow() {
+    shadowSettings.hidden = !state.shadowEnabled;
+    strengthSlider.value = state.shadowStrength;
+    strengthValue.textContent = `${state.shadowStrength}%`;
+    flood.setAttribute("flood-color", state.shadow);
+    flood.setAttribute("flood-opacity", (state.shadowStrength / 100 * 0.7).toFixed(3));
+    for (const frame of targets) {
+      if (state.shadowEnabled && state.shadowStrength > 0) {
+        frame.setAttribute("filter", "url(#memorySoftShadow)");
+      } else {
+        frame.removeAttribute("filter");
+      }
+    }
+  }
+
+  function updateText() {
+    for (const id of ["songTitlePreview", "artistPreview", "anniversaryTitlePreview", "anniversaryCountPreview"]) {
+      document.getElementById(id).setAttribute("fill", state.text);
+    }
+    // Keep a visual hierarchy while using one consistent text color.
+    document.getElementById("artistPreview").setAttribute("opacity", "0.79");
+    document.getElementById("anniversaryTitlePreview").setAttribute("opacity", "0.93");
+  }
+
+  // Process small transparent bounds, not the full 2048x1430 PNG on each recolor.
+  async function prepare(path, index) {
     const source = new Image();
     source.src = path;
     await source.decode();
-    const width = source.naturalWidth;
-    const height = source.naturalHeight;
-    const original = makeCanvas(width, height);
-    const originalCtx = original.getContext("2d", { willReadFrequently: true });
-    originalCtx.drawImage(source, 0, 0);
-    const pixels = originalCtx.getImageData(0, 0, width, height);
-    const base = pixels.data;
-    const soften = PATHS.indexOf(path) < 2;
-
-    // Black variant is the current design, including translucent white cards.
-    const black = makeCanvas(width, height);
-    const bctx = black.getContext("2d");
-    const blackData = new ImageData(new Uint8ClampedArray(base), width, height);
-    for (let i = 0; i < blackData.data.length; i += 4) {
-      if (!blackData.data[i + 3] || !soften) continue;
-      const lightness = Math.min(blackData.data[i], blackData.data[i + 1], blackData.data[i + 2]);
-      const whiteness = clamp((lightness - 165) / 85);
-      blackData.data[i + 3] = Math.round(blackData.data[i + 3] * (1 - (1 - WHITE_OPACITY) * whiteness));
-    }
-    bctx.putImageData(blackData, 0, 0);
-
-    // Separate the painted white paper and dark ink so that only ink changes.
-    const paper = makeCanvas(width, height);
-    const paperCtx = paper.getContext("2d");
-    const paperData = new ImageData(new Uint8ClampedArray(base), width, height);
-    const inkCanvas = makeCanvas(width, height);
-    const inkCtx = inkCanvas.getContext("2d");
-    const inkData = inkCtx.createImageData(width, height);
-    const pd = paperData.data;
-    const id = inkData.data;
-    for (let i = 0; i < base.length; i += 4) {
-      const alpha = base[i + 3];
-      if (!alpha) continue;
-      const lightness = Math.min(base[i], base[i + 1], base[i + 2]);
-      // Include anti-aliased edges of black strokes, controls and outlines.
-      const ink = clamp((230 - lightness) / 185);
-      if (ink > 0) {
-        id[i] = 255;
-        id[i + 1] = 255;
-        id[i + 2] = 255;
-        id[i + 3] = Math.round(alpha * ink);
+    const orig = canvas(source.naturalWidth, source.naturalHeight);
+    const oc = orig.getContext("2d", { willReadFrequently: true });
+    oc.drawImage(source, 0, 0);
+    const W = orig.width, H = orig.height;
+    const raw = oc.getImageData(0, 0, W, H).data;
+    let left = W, top = H, right = -1, bottom = -1;
+    for (let y = 0, i = 0; y < H; y++) {
+      for (let x = 0; x < W; x++, i += 4) {
+        if (raw[i + 3]) {
+          left = Math.min(left, x); top = Math.min(top, y);
+          right = Math.max(right, x); bottom = Math.max(bottom, y);
+        }
       }
-      // Reconstruct the original white panels beneath the recolored ink.
-      // The extra white pixels also make white playback buttons legible.
-      pd[i] = 255;
-      pd[i + 1] = 255;
-      pd[i + 2] = 255;
-      pd[i + 3] = Math.round(alpha * (soften ? WHITE_OPACITY : 1));
+    }
+    if (right < left) throw new Error("Empty frame: " + path);
+    const w = right - left + 1, h = bottom - top + 1;
+    const base = oc.getImageData(left, top, w, h).data;
+    const paper = canvas(w, h);
+    const lineMask = canvas(w, h);
+    const controlMask = canvas(w, h);
+    const paperCtx = paper.getContext("2d");
+    const paperData = paperCtx.createImageData(w, h);
+    const lineCtx = lineMask.getContext("2d");
+    const lineData = lineCtx.createImageData(w, h);
+    const controlCtx = controlMask.getContext("2d");
+    const controlData = controlCtx.createImageData(w, h);
+    const softPaper = index < 2;
+    for (let i = 0; i < base.length; i += 4) {
+      const a = base[i + 3];
+      if (!a) continue;
+      const value = Math.min(base[i], base[i + 1], base[i + 2]);
+      const ink = clamp((230 - value) / 185);
+      paperData.data[i] = paperData.data[i + 1] = paperData.data[i + 2] = 255;
+      paperData.data[i + 3] = Math.round(a * (softPaper ? 0.87 : 1));
+      if (!ink) continue;
+      const local = i / 4;
+      const globalX = left + (local % w);
+      const globalY = top + Math.floor(local / w);
+      // Only the seekbar and 3 playback icons, not the music frame border.
+      const isControl = index === 0 && globalX >= 480 && globalX <= 920 && globalY >= 870 && globalY <= 1060;
+      const d = isControl ? controlData.data : lineData.data;
+      d[i] = d[i + 1] = d[i + 2] = 255;
+      d[i + 3] = Math.round(a * ink);
     }
     paperCtx.putImageData(paperData, 0, 0);
-    inkCtx.putImageData(inkData, 0, 0);
-
-    const white = makeCanvas(width, height);
-    const whiteCtx = white.getContext("2d");
-    whiteCtx.drawImage(paper, 0, 0);
-    // Subtle blue-grey edging keeps white shapes visible on pale images.
-    whiteCtx.save();
-    whiteCtx.shadowColor = "rgba(59, 76, 96, 0.70)";
-    whiteCtx.shadowBlur = 7;
-    whiteCtx.shadowOffsetY = 1;
-    whiteCtx.drawImage(inkCanvas, 0, 0);
-    whiteCtx.restore();
-
-    return { black: black.toDataURL("image/png"), white: white.toDataURL("image/png") };
+    lineCtx.putImageData(lineData, 0, 0);
+    controlCtx.putImageData(controlData, 0, 0);
+    return { x: left, y: top, w, h, paper, lineMask, controlMask };
   }
 
-  function update() {
-    for (const path of PATHS) {
-      const pair = variants.get(path);
-      const target = targets.find(frame => frame.dataset.originalPath === path);
-      if (target && pair) target.setAttribute("href", pair[choice]);
+  function colorize(mask, color) {
+    const out = canvas(mask.width, mask.height);
+    const ctx = out.getContext("2d");
+    ctx.drawImage(mask, 0, 0);
+    ctx.globalCompositeOperation = "source-in";
+    ctx.fillStyle = color;
+    ctx.fillRect(0, 0, out.width, out.height);
+    ctx.globalCompositeOperation = "source-over";
+    return out;
+  }
+
+  function light(color) {
+    const n = color.replace("#", "");
+    const r = parseInt(n.slice(0,2),16), g = parseInt(n.slice(2,4),16), b = parseInt(n.slice(4,6),16);
+    return r * 0.2126 + g * 0.7152 + b * 0.0722 > 205;
+  }
+
+  function renderOne(path) {
+    const p = prepared.get(path);
+    const target = targets.find(t => t.dataset.originalPath === path);
+    if (!p || !target) return;
+    const output = canvas(p.w, p.h);
+    const ctx = output.getContext("2d");
+    ctx.drawImage(p.paper, 0, 0);
+    // A tiny grey-blue edge preserves contrast for white / pale outlines.
+    function drawInk(mask, color) {
+      const tinted = colorize(mask, color);
+      if (light(color)) {
+        ctx.save();
+        ctx.shadowColor = "rgba(55, 77, 100, 0.60)";
+        ctx.shadowBlur = 5;
+        ctx.shadowOffsetY = 1;
+        ctx.drawImage(tinted, 0, 0);
+        ctx.restore();
+      } else {
+        ctx.drawImage(tinted, 0, 0);
+      }
+    }
+    drawInk(p.lineMask, state.frame);
+    if (path === PATHS[0]) drawInk(p.controlMask, state.match ? state.frame : state.controls);
+    target.setAttribute("x", p.x);
+    target.setAttribute("y", p.y);
+    target.setAttribute("width", p.w);
+    target.setAttribute("height", p.h);
+    target.setAttribute("href", output.toDataURL("image/png"));
+  }
+
+  let pending = false;
+  function renderFrames() {
+    if (pending) return;
+    pending = true;
+    requestAnimationFrame(() => {
+      pending = false;
+      for (const path of PATHS) renderOne(path);
+    });
+  }
+
+  function syncPalette(key) {
+    const picker = document.querySelector(`[data-custom-color="${key}"]`);
+    if (picker) picker.value = state[key];
+    for (const button of document.querySelectorAll(`[data-color-target="${key}"]`)) {
+      const active = button.dataset.color.toLowerCase() === state[key];
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", String(active));
     }
   }
 
-  // Retain original paths for variant selection even after setting data URLs.
-  for (const target of targets) {
-    target.dataset.originalPath = target.getAttribute("href");
+  function chooseColor(key, color) {
+    if (!/^#[\da-f]{6}$/i.test(color)) return;
+    state[key] = color.toLowerCase();
+    syncPalette(key);
+    if (key === "frame" && state.match) {
+      state.controls = state.frame;
+      syncPalette("controls");
+    }
+    if (key === "frame" || key === "controls") renderFrames();
+    if (key === "text") updateText();
+    if (key === "shadow") updateShadow();
   }
-  for (const radio of radios) {
-    radio.addEventListener("change", () => {
-      if (radio.checked) {
-        choice = radio.value === "white" ? "white" : "black";
-        update();
-      }
-    });
-  }
-  // Build in sequence to avoid holding four decoded PNGs at once.
+
+  document.querySelectorAll("[data-color-target]").forEach(button => {
+    button.addEventListener("click", () => chooseColor(button.dataset.colorTarget, button.dataset.color));
+  });
+  document.querySelectorAll("[data-custom-color]").forEach(picker => {
+    picker.addEventListener("input", () => chooseColor(picker.dataset.customColor, picker.value));
+    picker.addEventListener("change", () => chooseColor(picker.dataset.customColor, picker.value));
+  });
+  matchCheckbox.addEventListener("change", () => {
+    state.match = matchCheckbox.checked;
+    controlsColors.hidden = state.match;
+    if (state.match) state.controls = state.frame;
+    renderFrames();
+  });
+  shadowCheckbox.addEventListener("change", () => {
+    state.shadowEnabled = shadowCheckbox.checked;
+    updateShadow();
+  });
+  strengthSlider.addEventListener("input", () => {
+    state.shadowStrength = Number(strengthSlider.value);
+    updateShadow();
+  });
+
+  targets.forEach(target => { target.dataset.originalPath = target.getAttribute("href"); });
+  updateText();
+  updateShadow();
+  // Keep original artwork visible while the recolored versions load.
   (async () => {
-    for (const path of PATHS) {
+    for (let i=0; i<PATHS.length; i++) {
+      const path = PATHS[i];
       try {
-        variants.set(path, await buildVariants(path));
-        update();
+        prepared.set(path, await prepare(path, i));
+        renderFrames();
       } catch (error) {
-        console.warn("Frame style couldn't load:", path, error);
+        console.warn("Couldn't prepare frame colors:", path, error);
       }
     }
   })();
