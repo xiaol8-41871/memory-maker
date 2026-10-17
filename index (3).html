@@ -1,0 +1,1491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memory Maker ♡</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  padding: 32px 28px 60px;
+  background: #eaf4ff;
+  font-family: Arial, sans-serif;
+  color: #52657a;
+}
+
+h1 {
+  margin: 0 0 30px;
+  color: #729bc5;
+  text-align: center;
+  font-size: 30px;
+  font-weight: 600;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(320px, 2fr);
+  align-items: start;
+  gap: 28px;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.preview-panel {
+  min-width: 0;
+  position: sticky;
+  top: 24px;
+}
+
+.preview-label {
+  margin: 0 0 12px;
+  color: #729bc5;
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-align: center;
+}
+
+.canvas {
+  width: 100%;
+  aspect-ratio: 2048 / 1430;
+  background: #c9e4f8;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.canvas svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+.frame {
+  pointer-events: none;
+}
+
+.photo-hit {
+  fill: transparent;
+  pointer-events: all;
+  cursor: grab;
+}
+
+.photo-hit:active {
+  cursor: grabbing;
+}
+
+.photo-hit.selected {
+  stroke: #7bb8f5;
+  stroke-width: 3;
+  stroke-dasharray: 12 8;
+}
+
+.controls {
+  min-width: 0;
+  padding: 26px;
+  background: #fff;
+  border-radius: 22px;
+}
+
+.controls h2 {
+  margin: 0 0 26px;
+  color: #729bc5;
+  font-size: 23px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.section-title {
+  margin: 0 0 15px;
+  color: #729bc5;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+.upload-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.upload-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 120px;
+  padding: 16px 10px;
+  border: 1px solid #dceaf8;
+  border-radius: 15px;
+  background: #f8fbff;
+  cursor: pointer;
+  transition: 0.2s;
+  text-align: center;
+}
+
+.upload-card:hover {
+  background: #edf6ff;
+  border-color: #a9cbea;
+}
+
+.upload-card .icon {
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.upload-card .name {
+  color: #729bc5;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.upload-card .status {
+  margin-top: 9px;
+  color: #91a8bc;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.upload-card input {
+  display: none;
+}
+
+.upload-card.loaded {
+  background: #eef7ff;
+  border-color: #a9cbea;
+}
+
+.upload-card.loaded .status {
+  color: #729bc5;
+}
+
+.editor {
+  margin-top: 25px;
+  padding: 22px 18px;
+  background: #f0f7ff;
+  border-radius: 16px;
+  text-align: center;
+}
+
+.editor h3 {
+  margin: 0 0 14px;
+  color: #729bc5;
+  font-size: 16px;
+}
+
+.hint {
+  margin: 0 0 18px;
+  color: #8191a1;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.zoom-control {
+  display: block;
+  color: #52657a;
+  font-size: 13px;
+}
+
+#zoomSlider {
+  display: block;
+  width: 100%;
+  margin: 16px 0;
+  accent-color: #729bc5;
+}
+
+#zoomValue {
+  margin: 0 0 12px;
+  color: #729bc5;
+  font-size: 14px;
+}
+
+.reset-button {
+  padding: 11px 20px;
+  border: 0;
+  border-radius: 10px;
+  background: #93bce4;
+  color: white;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.reset-button:hover {
+  background: #729bc5;
+}
+
+.reset-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+  body {
+    padding: 25px 16px 50px;
+  }
+
+  h1 {
+    font-size: 25px;
+  }
+
+  .layout {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+  }
+
+  .preview-panel {
+    position: static;
+    width: 100%;
+  }
+
+  .controls {
+    width: 100%;
+    max-width: 650px;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 450px) {
+  .controls {
+    padding: 20px 15px;
+  }
+
+  .upload-grid {
+    gap: 9px;
+  }
+
+  .upload-card {
+    min-height: 105px;
+    padding: 12px 8px;
+  }
+
+  .upload-card .name {
+    font-size: 11px;
+  }
+}
+
+/* CUSTOMIZE BY COMPONENT */
+.custom-section + .custom-section {
+  margin-top: 26px;
+  padding-top: 24px;
+  border-top: 1px solid #e8f1fa;
+}
+.custom-section .section-title { margin-bottom: 13px; }
+.custom-section .upload-card { min-height: 95px; }
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 15px;
+}
+.detail-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+  color: #729bc5;
+  font-size: 12px;
+  font-weight: bold;
+}
+.detail-field input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: 43px;
+  padding: 10px 12px;
+  border: 1px solid #dceaf8;
+  border-radius: 11px;
+  outline: none;
+  background: #f8fbff;
+  color: #52657a;
+  font: 14px Arial, sans-serif;
+}
+.detail-field input:focus {
+  border-color: #93bce4;
+  box-shadow: 0 0 0 2px #dfefff;
+}
+.detail-field input::placeholder { color: #a0afbf; }
+.section-hint {
+  margin: 10px 0 0;
+  color: #91a8bc;
+  font-size: 11px;
+  line-height: 1.6;
+}
+.background-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 13px;
+}
+.background-actions .reset-button { min-height: 40px; }
+.background-actions .remove-button { background: #aab8c7; }
+.background-actions .remove-button:hover { background: #8699ac; }
+.editor { margin-top: 0; }
+.canvas-caption { pointer-events: none; user-select: none; }
+@media (max-width: 500px) {
+  .detail-grid { grid-template-columns: minmax(0, 1fr); gap: 11px; }
+}
+</style>
+</head>
+
+<body>
+
+<h1>Memory Maker ♡</h1>
+
+<main class="layout">
+
+  <!-- PREVIEW -->
+
+  <section class="preview-panel">
+
+    <p class="preview-label">♡ YOUR MEMORY ♡</p>
+
+    <div class="canvas">
+
+      <svg
+        id="mainCanvas"
+        viewBox="0 0 2048 1430"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+
+        <defs>
+
+          <mask
+            id="musicMask"
+            maskUnits="userSpaceOnUse"
+            x="0" y="0"
+            width="2048" height="1430"
+          >
+            <image
+              id="musicMaskImage"
+              width="2048"
+              height="1430"
+            />
+          </mask>
+
+          <mask
+            id="dayMask"
+            maskUnits="userSpaceOnUse"
+            x="0" y="0"
+            width="2048" height="1430"
+          >
+            <image
+              id="dayMaskImage"
+              width="2048"
+              height="1430"
+            />
+          </mask>
+
+          <mask
+            id="leftMask"
+            maskUnits="userSpaceOnUse"
+            x="0" y="0"
+            width="2048" height="1430"
+          >
+            <image
+              id="leftMaskImage"
+              width="2048"
+              height="1430"
+            />
+          </mask>
+
+          <mask
+            id="rightMask"
+            maskUnits="userSpaceOnUse"
+            x="0" y="0"
+            width="2048" height="1430"
+          >
+            <image
+              id="rightMaskImage"
+              width="2048"
+              height="1430"
+            />
+          </mask>
+
+        </defs>
+
+
+        <!-- MUSIC PLAYER -->
+
+        <g mask="url(#musicMask)">
+          <image
+            id="musicPhoto"
+            preserveAspectRatio="none"
+          />
+        </g>
+
+        <image
+          class="frame"
+          href="images/musicplayer.PNG"
+          width="2048"
+          height="1430"
+        />
+
+
+
+        <!-- SONG INFO: on the white space above the seekbar -->
+        <g class="canvas-caption" aria-label="Music information">
+          <text id="songTitlePreview" x="474" y="794"
+                font-family="Arial, sans-serif" font-size="37" font-weight="700"
+                fill="#202020"></text>
+          <text id="artistPreview" x="474" y="847"
+                font-family="Arial, sans-serif" font-size="27"
+                fill="#555555"></text>
+        </g>
+
+        <!-- D-DAY -->
+
+        <g mask="url(#dayMask)">
+          <image
+            id="dayPhoto"
+            preserveAspectRatio="none"
+          />
+        </g>
+
+        <image
+          class="frame"
+          href="images/d_day.PNG"
+          width="2048"
+          height="1430"
+        />
+
+
+
+        <!-- D-DAY INFO: left white section of the D-Day card -->
+        <g class="canvas-caption" aria-label="Anniversary information">
+          <text id="anniversaryTitlePreview" x="966" y="408"
+                font-family="Arial, sans-serif" font-size="29" font-weight="700"
+                fill="#333333"></text>
+          <text id="anniversaryCountPreview" x="966" y="480"
+                font-family="Arial, sans-serif" font-size="50" font-weight="700"
+                fill="#262626"></text>
+        </g>
+
+        <!-- POLAROID 01 -->
+
+        <g mask="url(#leftMask)">
+          <g transform="rotate(-7 958 620)">
+            <image
+              id="leftPhoto"
+              preserveAspectRatio="none"
+            />
+          </g>
+        </g>
+
+        <image
+          class="frame"
+          href="images/polaroid_1.PNG"
+          width="2048"
+          height="1430"
+        />
+
+
+        <!-- POLAROID 02 -->
+
+        <g mask="url(#rightMask)">
+          <g transform="rotate(8.08 1344 638)">
+            <image
+              id="rightPhoto"
+              preserveAspectRatio="none"
+            />
+          </g>
+        </g>
+
+        <image
+          class="frame"
+          href="images/polaroid_2.PNG"
+          width="2048"
+          height="1430"
+        />
+
+
+        <!-- PHOTO SELECTION AREAS -->
+
+        <g id="hitAreas">
+
+          <rect
+            class="photo-hit"
+            data-id="musicPhoto"
+            x="474"
+            y="300"
+            width="428"
+            height="413"
+          />
+
+          <rect
+            class="photo-hit"
+            data-id="dayPhoto"
+            x="1281"
+            y="325"
+            width="215"
+            height="210"
+          />
+
+          <polygon
+            class="photo-hit"
+            data-id="leftPhoto"
+            points="
+              958,620
+              1276,581
+              1328,1010
+              1011,1049
+            "
+          />
+
+          <polygon
+            class="photo-hit"
+            data-id="rightPhoto"
+            points="
+              1344,638
+              1661,683
+              1601,1110
+              1283,1065
+            "
+          />
+
+        </g>
+
+      </svg>
+
+    </div>
+
+  </section>
+
+
+  <!-- CUSTOMIZE MENU -->
+
+  <section class="controls">
+    <h2>♡ Customize ♡</h2>
+
+    <section class="custom-section" aria-labelledby="musicSectionTitle">
+      <p class="section-title" id="musicSectionTitle">01 / MUSIC PLAYER</p>
+      <label class="upload-card" id="card-musicPhoto">
+        <span class="icon">♫</span>
+        <span class="name">Music Player Photo</span>
+        <span class="status">+ Upload Photo</span>
+        <input type="file" accept="image/*" onchange="setPhoto(event,'musicPhoto')">
+      </label>
+      <div class="detail-grid">
+        <label class="detail-field" for="songTitleInput">
+          Song Title
+          <input id="songTitleInput" type="text" maxlength="100" placeholder="Enter song title" autocomplete="off">
+        </label>
+        <label class="detail-field" for="artistInput">
+          Artist
+          <input id="artistInput" type="text" maxlength="100" placeholder="Enter artist name" autocomplete="off">
+        </label>
+      </div>
+      <p class="section-hint">Song details appear above the seekbar.</p>
+    </section>
+
+    <section class="custom-section" aria-labelledby="daySectionTitle">
+      <p class="section-title" id="daySectionTitle">02 / D-DAY</p>
+      <label class="upload-card" id="card-dayPhoto">
+        <span class="icon">♡</span>
+        <span class="name">D-Day Photo</span>
+        <span class="status">+ Upload Photo</span>
+        <input type="file" accept="image/*" onchange="setPhoto(event,'dayPhoto')">
+      </label>
+      <div class="detail-grid">
+        <label class="detail-field" for="anniversaryTitleInput">
+          Anniversary Title
+          <input id="anniversaryTitleInput" type="text" maxlength="100" placeholder="Our anniversary" autocomplete="off">
+        </label>
+        <label class="detail-field" for="anniversaryDateInput">
+          Date
+          <input id="anniversaryDateInput" type="date">
+        </label>
+      </div>
+      <p class="section-hint">Past: D+days · Today: D-Day · Future: D−days</p>
+    </section>
+
+    <section class="custom-section" aria-labelledby="polaroidsSectionTitle">
+      <p class="section-title" id="polaroidsSectionTitle">03 / POLAROIDS</p>
+      <div class="upload-grid">
+        <label class="upload-card" id="card-leftPhoto">
+          <span class="icon">▧</span>
+          <span class="name">Polaroid 01</span>
+          <span class="status">+ Upload Photo</span>
+          <input type="file" accept="image/*" onchange="setPhoto(event,'leftPhoto')">
+        </label>
+        <label class="upload-card" id="card-rightPhoto">
+          <span class="icon">▧</span>
+          <span class="name">Polaroid 02</span>
+          <span class="status">+ Upload Photo</span>
+          <input type="file" accept="image/*" onchange="setPhoto(event,'rightPhoto')">
+        </label>
+      </div>
+    </section>
+
+    <section class="custom-section" aria-labelledby="backgroundSectionTitle">
+      <p class="section-title" id="backgroundSectionTitle">04 / BACKGROUND</p>
+      <label class="upload-card" id="card-backgroundPhoto">
+        <span class="icon">✧</span>
+        <span class="name">Background Image</span>
+        <span class="status">+ Upload Background</span>
+        <input id="backgroundInput" type="file" accept="image/*" onchange="setPhoto(event,'backgroundPhoto')">
+      </label>
+      <p class="section-hint" style="text-align:center">Select the background to zoom or drag it into position.</p>
+      <div class="background-actions">
+        <button type="button" class="reset-button" id="editBackgroundButton">✧ Edit Background</button>
+        <button type="button" class="reset-button remove-button" id="removeBackgroundButton">× Remove</button>
+      </div>
+    </section>
+
+    <section class="custom-section" aria-labelledby="editorSectionTitle">
+      <div class="editor">
+        <p class="section-title" id="editorSectionTitle">05 / PHOTO EDITOR</p>
+        <h3 id="editingTitle">Select a Photo ♡</h3>
+        <p class="hint">Upload a photo to start editing.<br>Drag to reposition your photo.</p>
+        <label class="zoom-control" for="zoomSlider">Zoom</label>
+        <input id="zoomSlider" type="range" min="0.5" max="4" step="0.01" value="1" disabled>
+        <p id="zoomValue">100%</p>
+        <button class="reset-button" id="resetButton" onclick="resetPhoto()" disabled>↩ Reset Position</button>
+      </div>
+    </section>
+  </section>
+
+</main>
+
+
+<script>
+
+// ======================================
+// BASIC SETTINGS
+// ======================================
+
+const names = {
+  musicPhoto: "Music Player",
+  dayPhoto: "D-Day",
+  leftPhoto: "Polaroid 01",
+  rightPhoto: "Polaroid 02"
+};
+
+const frames = {
+
+  musicPhoto: {
+    x: 474,
+    y: 300,
+    w: 428,
+    h: 413,
+    angle: 0
+  },
+
+  dayPhoto: {
+    x: 1281,
+    y: 325,
+    w: 215,
+    h: 210,
+    angle: 0
+  },
+
+  leftPhoto: {
+    x: 958,
+    y: 620,
+    w: 320.4,
+    h: 432.2,
+    angle: -7
+  },
+
+  rightPhoto: {
+    x: 1344,
+    y: 638,
+    w: 320.2,
+    h: 431.2,
+    angle: 8.08
+  }
+
+};
+
+const maskSettings = [
+
+  {
+    file: "images/musicplayer.PNG",
+    target: "musicMaskImage",
+    seedX: 680,
+    seedY: 500
+  },
+
+  {
+    file: "images/d_day.PNG",
+    target: "dayMaskImage",
+    seedX: 1385,
+    seedY: 430
+  },
+
+  {
+    file: "images/polaroid_1.PNG",
+    target: "leftMaskImage",
+    seedX: 1140,
+    seedY: 800
+  },
+
+  {
+    file: "images/polaroid_2.PNG",
+    target: "rightMaskImage",
+    seedX: 1470,
+    seedY: 850
+  }
+
+];
+
+const photos = {};
+
+let selectedPhoto = null;
+let dragging = false;
+let lastPoint = null;
+
+const svg = document.getElementById("mainCanvas");
+const slider = document.getElementById("zoomSlider");
+const resetButton = document.getElementById("resetButton");
+
+Object.keys(names).forEach(id => {
+
+  photos[id] = {
+    url: null,
+    naturalWidth: 0,
+    naturalHeight: 0,
+    offsetX: 0,
+    offsetY: 0,
+    zoom: 1
+  };
+
+});
+
+
+// ======================================
+// CREATE MASKS FROM PNG WINDOWS
+// ======================================
+
+async function createMask(setting) {
+
+  const source = new Image();
+  source.src = setting.file;
+
+  await source.decode();
+
+  const width = 2048;
+  const height = 1430;
+
+  const canvas = document.createElement("canvas");
+
+  canvas.width = width;
+  canvas.height = height;
+
+  const ctx = canvas.getContext("2d", {
+    willReadFrequently: true
+  });
+
+  ctx.clearRect(0, 0, width, height);
+  ctx.drawImage(source, 0, 0, width, height);
+
+  const pixels = ctx.getImageData(
+    0, 0, width, height
+  );
+
+  const data = pixels.data;
+  const total = width * height;
+
+  const transparent = new Uint8Array(total);
+
+  for (let i = 0; i < total; i++) {
+
+    const alpha = data[i * 4 + 3];
+
+    if (alpha < 128) {
+      transparent[i] = 1;
+    }
+
+  }
+
+  const visited = new Uint8Array(total);
+  const queue = new Int32Array(total);
+
+  let head = 0;
+  let tail = 0;
+
+  const start =
+    setting.seedY * width + setting.seedX;
+
+  if (!transparent[start]) {
+    throw new Error(
+      "Invalid photo window: " + setting.file
+    );
+  }
+
+  queue[tail++] = start;
+  visited[start] = 1;
+
+  while (head < tail) {
+
+    const index = queue[head++];
+
+    const x = index % width;
+    const y = Math.floor(index / width);
+
+    const neighbors = [];
+
+    if (x > 0) {
+      neighbors.push(index - 1);
+    }
+
+    if (x < width - 1) {
+      neighbors.push(index + 1);
+    }
+
+    if (y > 0) {
+      neighbors.push(index - width);
+    }
+
+    if (y < height - 1) {
+      neighbors.push(index + width);
+    }
+
+    for (const next of neighbors) {
+
+      if (visited[next]) continue;
+      if (!transparent[next]) continue;
+
+      visited[next] = 1;
+      queue[tail++] = next;
+
+    }
+
+  }
+
+  if (tail > total * 0.3) {
+    throw new Error(
+      "Mask selection is too large: " + setting.file
+    );
+  }
+
+  const expanded = new Uint8Array(visited);
+
+  for (let i = 0; i < tail; i++) {
+
+    const index = queue[i];
+
+    const x = index % width;
+    const y = Math.floor(index / width);
+
+    for (let dy = -2; dy <= 2; dy++) {
+
+      for (let dx = -2; dx <= 2; dx++) {
+
+        const nx = x + dx;
+        const ny = y + dy;
+
+        if (
+          nx < 0 ||
+          nx >= width ||
+          ny < 0 ||
+          ny >= height
+        ) {
+          continue;
+        }
+
+        expanded[ny * width + nx] = 1;
+
+      }
+
+    }
+
+  }
+
+  const maskData = ctx.createImageData(
+    width, height
+  );
+
+  for (let i = 0; i < total; i++) {
+
+    const p = i * 4;
+
+    if (expanded[i]) {
+
+      maskData.data[p] = 255;
+      maskData.data[p + 1] = 255;
+      maskData.data[p + 2] = 255;
+      maskData.data[p + 3] = 255;
+
+    } else {
+
+      maskData.data[p] = 0;
+      maskData.data[p + 1] = 0;
+      maskData.data[p + 2] = 0;
+      maskData.data[p + 3] = 255;
+
+    }
+
+  }
+
+  ctx.putImageData(maskData, 0, 0);
+
+  const url = canvas.toDataURL("image/png");
+
+  document
+    .getElementById(setting.target)
+    .setAttribute("href", url);
+
+}
+
+async function initializeMasks() {
+
+  for (const setting of maskSettings) {
+
+    try {
+      await createMask(setting);
+    } catch (error) {
+      console.error(error);
+    }
+
+  }
+
+}
+
+initializeMasks();
+
+
+// ======================================
+// UPLOAD PHOTOS
+// ======================================
+
+function setPhoto(event, id) {
+
+  const file = event.target.files[0];
+
+  if (!file) return;
+
+  const url = URL.createObjectURL(file);
+  const tempImage = new Image();
+
+  tempImage.onload = function() {
+
+    const photo = photos[id];
+
+    if (photo.url) {
+      URL.revokeObjectURL(photo.url);
+    }
+
+    photo.url = url;
+    photo.naturalWidth = tempImage.naturalWidth;
+    photo.naturalHeight = tempImage.naturalHeight;
+
+    photo.offsetX = 0;
+    photo.offsetY = 0;
+    photo.zoom = 1;
+
+    document
+      .getElementById(id)
+      .setAttribute("href", url);
+
+    updatePhoto(id);
+    selectPhoto(id);
+
+    const card = document.getElementById(
+      "card-" + id
+    );
+
+    card.classList.add("loaded");
+
+    card.querySelector(".status")
+      .textContent = "✓ Photo Added";
+
+  };
+
+  tempImage.onerror = function() {
+
+    URL.revokeObjectURL(url);
+    alert("Unable to load this image.");
+
+  };
+
+  tempImage.src = url;
+
+}
+
+
+// ======================================
+// UPDATE PHOTO POSITION
+// ======================================
+
+function updatePhoto(id) {
+
+  const photo = photos[id];
+
+  if (!photo.url) return;
+
+  const frame = frames[id];
+  const image = document.getElementById(id);
+
+  const baseScale = Math.max(
+    (frame.w + 8) / photo.naturalWidth,
+    (frame.h + 8) / photo.naturalHeight
+  );
+
+  const scale = baseScale * photo.zoom;
+
+  const width = photo.naturalWidth * scale;
+  const height = photo.naturalHeight * scale;
+
+  const x =
+    frame.x +
+    (frame.w - width) / 2 +
+    photo.offsetX;
+
+  const y =
+    frame.y +
+    (frame.h - height) / 2 +
+    photo.offsetY;
+
+  image.setAttribute("x", x);
+  image.setAttribute("y", y);
+  image.setAttribute("width", width);
+  image.setAttribute("height", height);
+
+}
+
+
+// ======================================
+// SELECT PHOTO
+// ======================================
+
+function selectPhoto(id) {
+
+  selectedPhoto = id;
+
+  document
+    .querySelectorAll(".photo-hit")
+    .forEach(area => {
+
+      area.classList.toggle(
+        "selected",
+        area.dataset.id === id
+      );
+
+    });
+
+  document.getElementById("editingTitle")
+    .textContent = "Editing: " + names[id];
+
+  slider.disabled = false;
+  resetButton.disabled = false;
+
+  slider.value = photos[id].zoom;
+
+  updateZoomLabel();
+
+}
+
+
+// ======================================
+// ZOOM
+// ======================================
+
+function updateZoomLabel() {
+
+  document.getElementById("zoomValue")
+    .textContent =
+    Math.round(
+      Number(slider.value) * 100
+    ) + "%";
+
+}
+
+slider.addEventListener("input", function() {
+
+  if (!selectedPhoto) return;
+
+  photos[selectedPhoto].zoom =
+    Number(slider.value);
+
+  updatePhoto(selectedPhoto);
+  updateZoomLabel();
+
+});
+
+
+// ======================================
+// RESET POSITION
+// ======================================
+
+function resetPhoto() {
+
+  if (!selectedPhoto) return;
+
+  const photo = photos[selectedPhoto];
+
+  photo.offsetX = 0;
+  photo.offsetY = 0;
+  photo.zoom = 1;
+
+  slider.value = 1;
+
+  updatePhoto(selectedPhoto);
+  updateZoomLabel();
+
+}
+
+
+// ======================================
+// DRAG PHOTOS
+// ======================================
+
+function getPoint(event) {
+
+  const point = svg.createSVGPoint();
+
+  point.x = event.clientX;
+  point.y = event.clientY;
+
+  const matrix = svg.getScreenCTM();
+
+  if (!matrix) return null;
+
+  return point.matrixTransform(
+    matrix.inverse()
+  );
+
+}
+
+svg.addEventListener("pointerdown", function(event) {
+
+  const target = event.target.closest(
+    ".photo-hit"
+  );
+
+  if (!target) return;
+
+  const id = target.dataset.id;
+
+  if (!photos[id].url) return;
+
+  selectPhoto(id);
+
+  dragging = true;
+  lastPoint = getPoint(event);
+
+  svg.setPointerCapture(event.pointerId);
+
+  event.preventDefault();
+
+});
+
+svg.addEventListener("pointermove", function(event) {
+
+  if (
+    !dragging ||
+    !selectedPhoto ||
+    !lastPoint
+  ) {
+    return;
+  }
+
+  const point = getPoint(event);
+
+  if (!point) return;
+
+  const photo = photos[selectedPhoto];
+  const frame = frames[selectedPhoto];
+
+  const dx = point.x - lastPoint.x;
+  const dy = point.y - lastPoint.y;
+
+  const radians =
+    -frame.angle * Math.PI / 180;
+
+  photo.offsetX +=
+    dx * Math.cos(radians) -
+    dy * Math.sin(radians);
+
+  photo.offsetY +=
+    dx * Math.sin(radians) +
+    dy * Math.cos(radians);
+
+  lastPoint = point;
+
+  updatePhoto(selectedPhoto);
+
+});
+
+function stopDragging() {
+
+  dragging = false;
+  lastPoint = null;
+
+}
+
+svg.addEventListener(
+  "pointerup",
+  stopDragging
+);
+
+svg.addEventListener(
+  "pointercancel",
+  stopDragging
+);
+
+svg.addEventListener(
+  "lostpointercapture",
+  stopDragging
+);
+
+</script>
+
+  <script>
+/* ===== BACKGROUND CUSTOMIZER ===== */
+
+(function () {
+  const NS = "http://www.w3.org/2000/svg";
+  const ID = "backgroundPhoto";
+
+  // Register background as an editable photo
+  names[ID] = "Background";
+
+  frames[ID] = {
+    x: 0,
+    y: 0,
+    w: 2048,
+    h: 1430,
+    angle: 0
+  };
+
+  photos[ID] = {
+    url: null,
+    naturalWidth: 0,
+    naturalHeight: 0,
+    offsetX: 0,
+    offsetY: 0,
+    zoom: 1
+  };
+
+  // Background image goes behind every frame
+  const backgroundImage = document.createElementNS(NS, "image");
+
+  backgroundImage.setAttribute("id", ID);
+  backgroundImage.setAttribute("preserveAspectRatio", "none");
+  backgroundImage.setAttribute("pointer-events", "none");
+
+  const firstFrame = svg.querySelector("g[mask]");
+  svg.insertBefore(backgroundImage, firstFrame);
+
+  // Background drag area
+  const backgroundHit = document.createElementNS(NS, "rect");
+
+  backgroundHit.setAttribute("class", "photo-hit");
+  backgroundHit.setAttribute("data-id", ID);
+  backgroundHit.setAttribute("x", "0");
+  backgroundHit.setAttribute("y", "0");
+  backgroundHit.setAttribute("width", "2048");
+  backgroundHit.setAttribute("height", "1430");
+  backgroundHit.style.stroke = "none";
+
+  const hitAreas = document.getElementById("hitAreas");
+  hitAreas.insertBefore(backgroundHit, hitAreas.firstChild);
+
+  // Background controls are already grouped under 04 / BACKGROUND.
+  document.getElementById("editBackgroundButton").addEventListener("click", function () {
+    if (!photos[ID].url) return;
+    selectPhoto(ID);
+  });
+
+  document.getElementById("removeBackgroundButton").addEventListener("click", function () {
+    const photo = photos[ID];
+    if (!photo.url) return;
+
+    URL.revokeObjectURL(photo.url);
+    photo.url = null;
+    photo.naturalWidth = 0;
+    photo.naturalHeight = 0;
+    photo.offsetX = 0;
+    photo.offsetY = 0;
+    photo.zoom = 1;
+
+    backgroundImage.removeAttribute("href");
+    const input = document.getElementById("backgroundInput");
+    input.value = "";
+
+    const card = document.getElementById("card-backgroundPhoto");
+    card.classList.remove("loaded");
+    card.querySelector(".status").textContent = "+ Upload Background";
+
+    if (selectedPhoto === ID) {
+      selectedPhoto = null;
+      document.querySelectorAll(".photo-hit").forEach(area => {
+        area.classList.remove("selected");
+      });
+      document.getElementById("editingTitle").textContent = "Select a Photo ♡";
+      slider.disabled = true;
+      slider.value = 1;
+      resetButton.disabled = true;
+      updateZoomLabel();
+    }
+  });
+})();
+</script>
+
+<script>
+/* ===== LIVE TEXT CUSTOMIZER ===== */
+(function () {
+  // Fit text into existing white spaces instead of letting it run over frames.
+  function updateSvgText(inputId, previewId, maxWidth) {
+    const input = document.getElementById(inputId);
+    const output = document.getElementById(previewId);
+    const value = input.value.trim();
+    output.textContent = value;
+    // Keep letters readable; shorten only the preview when a title is too long.
+    if (value && output.getComputedTextLength() > maxWidth) {
+      let low = 0;
+      let high = value.length;
+      while (low < high) {
+        const mid = Math.ceil((low + high) / 2);
+        output.textContent = value.slice(0, mid).trimEnd() + "…";
+        if (output.getComputedTextLength() <= maxWidth) low = mid;
+        else high = mid - 1;
+      }
+      output.textContent = value.slice(0, low).trimEnd() + "…";
+    }
+  }
+
+  function updateDayCount() {
+    const dateValue = document.getElementById("anniversaryDateInput").value;
+    const output = document.getElementById("anniversaryCountPreview");
+    if (!dateValue) {
+      output.textContent = "";
+      return;
+    }
+    const parts = dateValue.split("-").map(Number);
+    if (parts.length !== 3 || !parts.every(Number.isFinite)) {
+      output.textContent = "";
+      return;
+    }
+    const now = new Date();
+    // UTC calendar-day arithmetic avoids DST and timezone parsing shifts.
+    const todayUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+    const anniversaryUTC = Date.UTC(parts[0], parts[1] - 1, parts[2]);
+    const days = Math.round((todayUTC - anniversaryUTC) / 86400000);
+    output.textContent = days === 0 ? "D-Day" : days > 0 ? "D+" + days : "D" + days;
+  }
+
+  // Fit a song title naturally on one line, or at most two lines.
+  // Choose the largest readable size that fits the music player's white area.
+  const songInput = document.getElementById("songTitleInput");
+  const songPreview = document.getElementById("songTitlePreview");
+  const measureCanvas = document.createElement("canvas");
+  const measureContext = measureCanvas.getContext("2d");
+  const songMaxWidth = 417;
+  const songMaxSize = 37;
+  const songMinSize = 15;
+  const lineTwoBaseline = 801;
+
+  function songCharacters(value) {
+    // Keep emoji, combining characters, and other Unicode graphemes intact.
+    if (typeof Intl !== "undefined" && Intl.Segmenter) {
+      return [...new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(value)]
+        .map(part => part.segment);
+    }
+    return Array.from(value);
+  }
+
+  function wrapSongAtSize(chars, size) {
+    measureContext.font = `700 ${size}px Arial, sans-serif`;
+    const width = line => measureContext.measureText(line).width;
+    const whole = chars.join("");
+    if (width(whole) <= songMaxWidth) return [whole];
+
+    // Prefer natural word boundaries, including Japanese words.
+    const boundaries = new Set();
+    if (typeof Intl !== "undefined" && Intl.Segmenter) {
+      for (const segment of new Intl.Segmenter("ja", { granularity: "word" }).segment(whole)) {
+        boundaries.add(segment.index + segment.segment.length);
+      }
+    }
+
+    let best = null;
+    let offset = 0;
+    for (let i = 1; i < chars.length; i++) {
+      offset += chars[i - 1].length;
+      const first = chars.slice(0, i).join("").trimEnd();
+      const second = chars.slice(i).join("").trimStart();
+      if (!first || !second) continue;
+      const firstWidth = width(first);
+      const secondWidth = width(second);
+      if (firstWidth > songMaxWidth || secondWidth > songMaxWidth) continue;
+      const splitsLatinWord = /[A-Za-z0-9]$/.test(first) && /^[A-Za-z0-9]/.test(second);
+      const isWordBoundary = boundaries.size ? boundaries.has(offset) : !splitsLatinWord;
+      if (!isWordBoundary) continue;
+      const score = Math.abs(firstWidth - secondWidth);
+      if (!best || score < best.score) best = { lines: [first, second], score };
+    }
+    return best ? best.lines : null;
+  }
+
+  function updateSongTitle() {
+    const value = songInput.value.trim().replace(/\s+/g, " ");
+    songPreview.replaceChildren();
+    if (!value) return;
+
+    const chars = songCharacters(value);
+    let size = songMaxSize;
+    let lines = null;
+    for (; size >= songMinSize; size--) {
+      lines = wrapSongAtSize(chars, size);
+      if (lines) break;
+    }
+
+    // An exceptionally long title may not fit legibly in two lines.
+    // Limit only that rare preview case without changing the user's input.
+    if (!lines) {
+      size = songMinSize;
+      measureContext.font = `700 ${size}px Arial, sans-serif`;
+      const width = line => measureContext.measureText(line).width;
+      let first = "";
+      let index = 0;
+      while (index < chars.length && width(first + chars[index]) <= songMaxWidth) {
+        first += chars[index++];
+      }
+      let second = "";
+      while (index < chars.length && width(second + chars[index] + "…") <= songMaxWidth) {
+        second += chars[index++];
+      }
+      lines = [first.trimEnd(), (second.trimEnd() + "…")];
+    }
+
+    songPreview.setAttribute("font-size", String(size));
+    const lineGap = size + 3;
+    const firstBaseline = lines.length === 1 ? 794 : lineTwoBaseline - lineGap;
+    for (let i = 0; i < lines.length; i++) {
+      const span = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+      span.setAttribute("x", "474");
+      span.setAttribute("y", String(firstBaseline + i * lineGap));
+      span.textContent = lines[i];
+      songPreview.appendChild(span);
+    }
+  }
+
+  songInput.addEventListener("input", updateSongTitle);
+  updateSongTitle();
+
+  const textInputs = [
+    ["artistInput", "artistPreview", 417],
+    ["anniversaryTitleInput", "anniversaryTitlePreview", 285]
+  ];
+  textInputs.forEach(([inputId, previewId, maxWidth]) => {
+    const input = document.getElementById(inputId);
+    const update = () => updateSvgText(inputId, previewId, maxWidth);
+    input.addEventListener("input", update);
+    update();
+  });
+  document.getElementById("anniversaryDateInput").addEventListener("input", updateDayCount);
+  updateDayCount();
+})();
+</script>
+</body>
+</html>
