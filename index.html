@@ -429,13 +429,7 @@ h1 {
 .color-custom input[type="color"]::-moz-color-swatch { border: 0; border-radius: 50%; }
 .color-match { display: inline-flex; align-items: center; gap: 9px; color: #647d94; font-size: 12px; cursor: pointer; margin: 2px 0 0; }
 .color-match input { width: 16px; height: 16px; accent-color: #87b4df; cursor: pointer; }
-#controlsColors[hidden], #shadowSettings[hidden] { display: none !important; }
-.shadow-heading { display: flex; justify-content: space-between; align-items: center; gap: 14px; }
-.shadow-heading .color-setting-title { margin-bottom: 0; }
-.shadow-toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: #6789a9; cursor: pointer; }
-.shadow-toggle input { width: 17px; height: 17px; accent-color: #89b6de; }
-.shadow-strength { display: flex; justify-content: space-between; gap: 10px; margin-top: 19px; font-weight: bold; font-size: 12px; color: #729bc5; }
-#shadowStrength { display: block; width: 100%; margin: 12px 0 3px; accent-color: #87b6e5; cursor: pointer; }
+#controlsColors[hidden] { display: none !important; }
 @media (max-width: 420px) { .color-palette { gap: 10px; } }
 </style>
 </head>
@@ -782,7 +776,6 @@ h1 {
 
     <section class="custom-section" aria-labelledby="frameStyleSectionTitle">
       <p class="section-title" id="frameStyleSectionTitle">06 / COLORS &amp; STYLE</p>
-
       <div class="color-setting">
         <div class="color-setting-title">Frame Color</div>
       <div class="color-palette" role="group" aria-label="Frame color choices">
@@ -795,7 +788,6 @@ h1 {
         <label class="color-custom" title="Choose any color"><input id="frameColorPicker" data-custom-color="frame" type="color" value="#171717" aria-label="Custom frame color"><span>Custom</span></label>
       </div>
       </div>
-
       <div class="color-setting">
         <div class="color-setting-title">Text Color</div>
       <div class="color-palette" role="group" aria-label="Text color choices">
@@ -807,16 +799,12 @@ h1 {
         <button type="button" class="color-preset" data-color-target="text" data-color="#586d80" style="--swatch:#586d80" aria-label="Slate" title="Slate" aria-pressed="false"></button>
         <label class="color-custom" title="Choose any color"><input id="textColorPicker" data-custom-color="text" type="color" value="#202020" aria-label="Custom text color"><span>Custom</span></label>
       </div>
-        <p class="section-hint">Song, artist and D-Day text change together.</p>
+        <p class="section-hint">Changes the song, artist and D-Day text together.</p>
       </div>
-
       <div class="color-setting">
         <div class="color-setting-title">Player Controls</div>
-        <label class="color-match" for="matchFrameColor">
-          <input type="checkbox" id="matchFrameColor" checked>
-          Match Frame Color ♡
-        </label>
-        <div id="controlsColors" style="margin-top:13px;" hidden>
+        <label class="color-match" for="matchFrameColor"><input id="matchFrameColor" type="checkbox" checked> Match Frame Color ♡</label>
+        <div id="controlsColors" hidden style="margin-top:13px;">
       <div class="color-palette" role="group" aria-label="Controls color choices">
         <button type="button" class="color-preset is-active" data-color-target="controls" data-color="#171717" style="--swatch:#171717" aria-label="Black" title="Black" aria-pressed="true"></button>
         <button type="button" class="color-preset" data-color-target="controls" data-color="#ffffff" style="--swatch:#ffffff" aria-label="White" title="White" aria-pressed="false"></button>
@@ -828,30 +816,7 @@ h1 {
       </div>
         </div>
       </div>
-
-      <div class="color-setting">
-        <div class="shadow-heading">
-          <span class="color-setting-title">Drop Shadow</span>
-          <label class="shadow-toggle" for="shadowEnabled">
-            <input id="shadowEnabled" type="checkbox" checked> ON / OFF
-          </label>
-        </div>
-        <div id="shadowSettings" style="margin-top:15px;">
-          <div class="color-setting-title">Shadow Color</div>
-      <div class="color-palette" role="group" aria-label="Shadow color choices">
-        <button type="button" class="color-preset is-active" data-color-target="shadow" data-color="#819bb4" style="--swatch:#819bb4" aria-label="Blue Grey" title="Blue Grey" aria-pressed="true"></button>
-        <button type="button" class="color-preset" data-color-target="shadow" data-color="#202b3a" style="--swatch:#202b3a" aria-label="Dark" title="Dark" aria-pressed="false"></button>
-        <button type="button" class="color-preset" data-color-target="shadow" data-color="#ffffff" style="--swatch:#ffffff" aria-label="White" title="White" aria-pressed="false"></button>
-        <button type="button" class="color-preset" data-color-target="shadow" data-color="#b7a4df" style="--swatch:#b7a4df" aria-label="Lavender" title="Lavender" aria-pressed="false"></button>
-        <button type="button" class="color-preset" data-color-target="shadow" data-color="#e6a8c2" style="--swatch:#e6a8c2" aria-label="Pink" title="Pink" aria-pressed="false"></button>
-        <button type="button" class="color-preset" data-color-target="shadow" data-color="#8fc6dc" style="--swatch:#8fc6dc" aria-label="Light Blue" title="Light Blue" aria-pressed="false"></button>
-        <label class="color-custom" title="Choose any color"><input id="shadowColorPicker" data-custom-color="shadow" type="color" value="#819bb4" aria-label="Custom shadow color"><span>Custom</span></label>
-      </div>
-          <label class="shadow-strength" for="shadowStrength"><span>Shadow Strength</span><span id="shadowStrengthValue">35%</span></label>
-          <input id="shadowStrength" type="range" min="0" max="100" step="1" value="35">
-        </div>
-      </div>
-      <p class="section-hint">Choose a preset or open the color picker for your own shade. The soft shadow follows all four frames ♡</p>
+      <p class="section-hint">Choose a preset or use the color picker. No drop shadows are added ♡</p>
     </section>
 
 
@@ -1844,201 +1809,110 @@ svg.addEventListener(
 </script>
 
 <script>
-/* ===== CUSTOM COLORS + SOFT SHADOWS =====
-   The four original PNGs are only read here; their photo masks and
-   the rest of the Memory Maker remain unchanged.
+/* ===== COLORS — STABLE ORIGINAL OVERLAY GEOMETRY, NO SHADOWS =====
+   Rebuild on the previously working full-size 2048 x 1430 frame layer.
+   No SVG filters, cropping, offsets, or changes to image x/y/width/height.
 */
 (function () {
-  const NS = "http://www.w3.org/2000/svg";
   const PATHS = [
     "images/musicplayer.PNG", "images/d_day.PNG",
     "images/polaroid_1.PNG", "images/polaroid_2.PNG"
   ];
-  const targets = [...document.querySelectorAll("#mainCanvas image.frame")];
-  const prepared = new Map();
-  const state = {
-    frame: "#171717", text: "#202020", controls: "#171717",
-    shadow: "#819bb4", shadowStrength: 35, shadowEnabled: true,
-    match: true
-  };
-  const matchCheckbox = document.getElementById("matchFrameColor");
+  const targets = Array.from(document.querySelectorAll("#mainCanvas image.frame"));
+  const templates = new Map();
+  const state = { frame: "#171717", text: "#202020", controls: "#171717", match: true };
+  const matchBox = document.getElementById("matchFrameColor");
   const controlsColors = document.getElementById("controlsColors");
-  const shadowCheckbox = document.getElementById("shadowEnabled");
-  const shadowSettings = document.getElementById("shadowSettings");
-  const strengthSlider = document.getElementById("shadowStrength");
-  const strengthValue = document.getElementById("shadowStrengthValue");
   const clamp = n => Math.max(0, Math.min(1, n));
 
   function canvas(w, h) {
     const el = document.createElement("canvas");
-    el.width = w; el.height = h;
+    el.width = w;
+    el.height = h;
     return el;
   }
 
-  function svgNode(tag, attrs) {
-    const el = document.createElementNS(NS, tag);
-    Object.entries(attrs || {}).forEach(([k, v]) => el.setAttribute(k, v));
-    return el;
-  }
-
-  // Shadows are baked into the displayed PNG itself. This avoids an SVG
-  // filter/compositing issue that can enlarge or displace frames on Safari.
-  // The original overlay PNGs and photo masks remain unchanged.
-  function updateShadow() {
-    shadowSettings.hidden = !state.shadowEnabled;
-    strengthSlider.value = state.shadowStrength;
-    strengthValue.textContent = `${state.shadowStrength}%`;
-    renderFrames();
-  }
-
-  function updateText() {
-    for (const id of ["songTitlePreview", "artistPreview", "anniversaryTitlePreview", "anniversaryCountPreview"]) {
-      document.getElementById(id).setAttribute("fill", state.text);
-    }
-    // Keep a visual hierarchy while using one consistent text color.
-    document.getElementById("artistPreview").setAttribute("opacity", "0.79");
-    document.getElementById("anniversaryTitlePreview").setAttribute("opacity", "0.93");
-  }
-
-  // Process small transparent bounds, not the full 2048x1430 PNG on each recolor.
-  async function prepare(path, index) {
-    const source = new Image();
-    source.src = path;
-    await source.decode();
-    const orig = canvas(source.naturalWidth, source.naturalHeight);
-    const oc = orig.getContext("2d", { willReadFrequently: true });
-    oc.drawImage(source, 0, 0);
-    const W = orig.width, H = orig.height;
-    const raw = oc.getImageData(0, 0, W, H).data;
-    let left = W, top = H, right = -1, bottom = -1;
-    for (let y = 0, i = 0; y < H; y++) {
-      for (let x = 0; x < W; x++, i += 4) {
-        if (raw[i + 3]) {
-          left = Math.min(left, x); top = Math.min(top, y);
-          right = Math.max(right, x); bottom = Math.max(bottom, y);
-        }
-      }
-    }
-    if (right < left) throw new Error("Empty frame: " + path);
-    const w = right - left + 1, h = bottom - top + 1;
-    const base = oc.getImageData(left, top, w, h).data;
-    const paper = canvas(w, h);
-    const lineMask = canvas(w, h);
-    const controlMask = canvas(w, h);
+  async function makeTemplate(path, index) {
+    const image = new Image();
+    image.src = path;
+    await image.decode();
+    const W = image.naturalWidth, H = image.naturalHeight;
+    const source = canvas(W, H);
+    const sourceCtx = source.getContext("2d", { willReadFrequently: true });
+    sourceCtx.drawImage(image, 0, 0);
+    const raw = sourceCtx.getImageData(0, 0, W, H).data;
+    const paper = canvas(W, H);
     const paperCtx = paper.getContext("2d");
-    const paperData = paperCtx.createImageData(w, h);
-    const lineCtx = lineMask.getContext("2d");
-    const lineData = lineCtx.createImageData(w, h);
-    const controlCtx = controlMask.getContext("2d");
-    const controlData = controlCtx.createImageData(w, h);
+    const paperPixels = paperCtx.createImageData(W, H);
+    const ink = canvas(W, H);
+    const inkCtx = ink.getContext("2d");
+    const inkPixels = inkCtx.createImageData(W, H);
+    const controls = canvas(W, H);
+    const controlsCtx = controls.getContext("2d");
+    const controlsPixels = controlsCtx.createImageData(W, H);
     const softPaper = index < 2;
-    for (let i = 0; i < base.length; i += 4) {
-      const a = base[i + 3];
-      if (!a) continue;
-      const value = Math.min(base[i], base[i + 1], base[i + 2]);
-      const ink = clamp((230 - value) / 185);
-      paperData.data[i] = paperData.data[i + 1] = paperData.data[i + 2] = 255;
-      paperData.data[i + 3] = Math.round(a * (softPaper ? 0.87 : 1));
-      if (!ink) continue;
-      const local = i / 4;
-      const globalX = left + (local % w);
-      const globalY = top + Math.floor(local / w);
-      // Only the seekbar and 3 playback icons, not the music frame border.
-      const isControl = index === 0 && globalX >= 480 && globalX <= 920 && globalY >= 870 && globalY <= 1060;
-      const d = isControl ? controlData.data : lineData.data;
-      d[i] = d[i + 1] = d[i + 2] = 255;
-      d[i + 3] = Math.round(a * ink);
+
+    // Preserve every pixel's original coordinates. White parts are 87% opaque
+    // on the music player / D-Day, while borders and playback glyphs stay solid.
+    for (let i = 0; i < raw.length; i += 4) {
+      const alpha = raw[i + 3];
+      if (!alpha) continue;
+      const darkness = clamp((230 - Math.min(raw[i], raw[i + 1], raw[i + 2])) / 185);
+      paperPixels.data[i] = 255;
+      paperPixels.data[i+1] = 255;
+      paperPixels.data[i+2] = 255;
+      paperPixels.data[i+3] = Math.round(alpha * (softPaper ? 0.87 : 1));
+      if (!darkness) continue;
+      const x = (i / 4) % W;
+      const y = Math.floor(i / 4 / W);
+      const isPlayback = index === 0 && x >= 480 && x <= 920 && y >= 870 && y <= 1060;
+      const data = isPlayback ? controlsPixels.data : inkPixels.data;
+      data[i] = data[i+1] = data[i+2] = 255;
+      data[i+3] = Math.round(alpha * darkness);
     }
-    paperCtx.putImageData(paperData, 0, 0);
-    lineCtx.putImageData(lineData, 0, 0);
-    controlCtx.putImageData(controlData, 0, 0);
-    return { x: left, y: top, w, h, paper, lineMask, controlMask };
+    paperCtx.putImageData(paperPixels, 0, 0);
+    inkCtx.putImageData(inkPixels, 0, 0);
+    controlsCtx.putImageData(controlsPixels, 0, 0);
+    return { paper, ink, controls };
   }
 
-  function colorize(mask, color) {
+  function tinted(mask, color) {
     const out = canvas(mask.width, mask.height);
     const ctx = out.getContext("2d");
     ctx.drawImage(mask, 0, 0);
     ctx.globalCompositeOperation = "source-in";
     ctx.fillStyle = color;
     ctx.fillRect(0, 0, out.width, out.height);
-    ctx.globalCompositeOperation = "source-over";
     return out;
   }
 
-  function light(color) {
-    const n = color.replace("#", "");
-    const r = parseInt(n.slice(0,2),16), g = parseInt(n.slice(2,4),16), b = parseInt(n.slice(4,6),16);
-    return r * 0.2126 + g * 0.7152 + b * 0.0722 > 205;
+  function updateText() {
+    for (const id of ["songTitlePreview", "artistPreview", "anniversaryTitlePreview", "anniversaryCountPreview"]) {
+      const el = document.getElementById(id);
+      if (el) el.setAttribute("fill", state.text);
+    }
+    document.getElementById("artistPreview").setAttribute("opacity", "0.79");
+    document.getElementById("anniversaryTitlePreview").setAttribute("opacity", "0.93");
   }
 
-  function renderOne(path) {
-    const p = prepared.get(path);
-    const target = targets.find(t => t.dataset.originalPath === path);
-    if (!p || !target) return;
-
-    // Keep every displayed overlay exactly the same 2048×1430 SVG size
-    // and origin as the original PNG. Safari can render cropped SVG <image>
-    // data URLs at unexpected scales or positions when its geometry changes.
-    // Recolor and paint the shadow on a full-size transparent canvas instead.
-    const output = canvas(2048, 1430);
-    const ctx = output.getContext("2d");
-    const frameX = p.x;
-    const frameY = p.y;
-
-    // Paint the soft drop shadow directly onto a padded transparent canvas.
-    // No SVG filter is applied to the image, keeping coordinates consistent.
-    if (state.shadowEnabled && state.shadowStrength > 0) {
-      const n = state.shadowStrength / 100;
-      ctx.save();
-      ctx.shadowColor = `${state.shadow}${Math.round(n * 155).toString(16).padStart(2, "0")}`;
-      ctx.shadowBlur = 24;
-      ctx.shadowOffsetX = 8;
-      ctx.shadowOffsetY = 12;
-      ctx.drawImage(p.paper, frameX, frameY);
-      ctx.restore();
-    }
-
-    ctx.drawImage(p.paper, frameX, frameY);
-
-    // A tiny grey-blue edge preserves contrast for white / pale outlines.
-    function drawInk(mask, color) {
-      const tinted = colorize(mask, color);
-      if (light(color)) {
-        ctx.save();
-        ctx.shadowColor = "rgba(55, 77, 100, 0.60)";
-        ctx.shadowBlur = 5;
-        ctx.shadowOffsetY = 1;
-        ctx.drawImage(tinted, frameX, frameY);
-        ctx.restore();
-      } else {
-        ctx.drawImage(tinted, frameX, frameY);
-      }
-    }
-
-    drawInk(p.lineMask, state.frame);
-    if (path === PATHS[0]) {
-      drawInk(p.controlMask, state.match ? state.frame : state.controls);
-    }
-
-    // Never alter frame geometry. Only its artwork changes.
-    // The photo masks, hit areas and text continue sharing the same coordinates.
-    target.removeAttribute("filter");
-    target.setAttribute("x", "0");
-    target.setAttribute("y", "0");
-    target.setAttribute("width", "2048");
-    target.setAttribute("height", "1430");
-    target.setAttribute("preserveAspectRatio", "none");
-    target.setAttribute("href", output.toDataURL("image/png"));
-  }
-
-  let pending = false;
-  function renderFrames() {
-    if (pending) return;
-    pending = true;
+  let requested = false;
+  function updateFrames() {
+    if (requested) return;
+    requested = true;
     requestAnimationFrame(() => {
-      pending = false;
-      for (const path of PATHS) renderOne(path);
+      requested = false;
+      for (let i = 0; i < PATHS.length; i++) {
+        const prepared = templates.get(PATHS[i]);
+        if (!prepared) continue;
+        const output = canvas(2048, 1430);
+        const ctx = output.getContext("2d");
+        ctx.drawImage(prepared.paper, 0, 0);
+        ctx.drawImage(tinted(prepared.ink, state.frame), 0, 0);
+        if (i === 0) ctx.drawImage(tinted(prepared.controls, state.match ? state.frame : state.controls), 0, 0);
+        // NOTE: Do not set/change x, y, width, height, preserveAspectRatio or filter.
+        // The SVG frame retains the original unchanged geometry from the stable version.
+        targets[i].setAttribute("href", output.toDataURL("image/png"));
+      }
     });
   }
 
@@ -2046,23 +1920,22 @@ svg.addEventListener(
     const picker = document.querySelector(`[data-custom-color="${key}"]`);
     if (picker) picker.value = state[key];
     for (const button of document.querySelectorAll(`[data-color-target="${key}"]`)) {
-      const active = button.dataset.color.toLowerCase() === state[key];
-      button.classList.toggle("is-active", active);
-      button.setAttribute("aria-pressed", String(active));
+      const on = button.dataset.color.toLowerCase() === state[key];
+      button.classList.toggle("is-active", on);
+      button.setAttribute("aria-pressed", String(on));
     }
   }
 
   function chooseColor(key, color) {
-    if (!/^#[\da-f]{6}$/i.test(color)) return;
+    if (!/^#[0-9a-f]{6}$/i.test(color)) return;
     state[key] = color.toLowerCase();
     syncPalette(key);
     if (key === "frame" && state.match) {
       state.controls = state.frame;
       syncPalette("controls");
     }
-    if (key === "frame" || key === "controls") renderFrames();
     if (key === "text") updateText();
-    if (key === "shadow") updateShadow();
+    else updateFrames();
   }
 
   document.querySelectorAll("[data-color-target]").forEach(button => {
@@ -2072,33 +1945,25 @@ svg.addEventListener(
     picker.addEventListener("input", () => chooseColor(picker.dataset.customColor, picker.value));
     picker.addEventListener("change", () => chooseColor(picker.dataset.customColor, picker.value));
   });
-  matchCheckbox.addEventListener("change", () => {
-    state.match = matchCheckbox.checked;
+  matchBox.addEventListener("change", () => {
+    state.match = matchBox.checked;
     controlsColors.hidden = state.match;
-    if (state.match) state.controls = state.frame;
-    renderFrames();
-  });
-  shadowCheckbox.addEventListener("change", () => {
-    state.shadowEnabled = shadowCheckbox.checked;
-    updateShadow();
-  });
-  strengthSlider.addEventListener("input", () => {
-    state.shadowStrength = Number(strengthSlider.value);
-    updateShadow();
+    if (state.match) {
+      state.controls = state.frame;
+      syncPalette("controls");
+    }
+    updateFrames();
   });
 
-  targets.forEach(target => { target.dataset.originalPath = target.getAttribute("href"); });
   updateText();
-  updateShadow();
-  // Keep original artwork visible while the recolored versions load.
+  // Preserve the known-working original frame PNG while colors initialize.
   (async () => {
-    for (let i=0; i<PATHS.length; i++) {
-      const path = PATHS[i];
+    for (let i = 0; i < PATHS.length; i++) {
       try {
-        prepared.set(path, await prepare(path, i));
-        renderFrames();
-      } catch (error) {
-        console.warn("Couldn't prepare frame colors:", path, error);
+        templates.set(PATHS[i], await makeTemplate(PATHS[i], i));
+        updateFrames();
+      } catch (err) {
+        console.warn("Could not recolor frame", PATHS[i], err);
       }
     }
   })();
