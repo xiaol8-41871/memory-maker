@@ -1881,32 +1881,14 @@ svg.addEventListener(
     return el;
   }
 
-  // SVG shadows are attached to display frames only, never to the photos.
-  const defs = document.querySelector("#mainCanvas defs");
-  const filter = svgNode("filter", { id: "memorySoftShadow", x: "-28%", y: "-28%", width: "156%", height: "160%", "color-interpolation-filters": "sRGB" });
-  const blur = svgNode("feGaussianBlur", { in: "SourceAlpha", stdDeviation: "15", result: "blurred" });
-  const offset = svgNode("feOffset", { in: "blurred", dx: "8", dy: "12", result: "shifted" });
-  const flood = svgNode("feFlood", { "flood-color": state.shadow, "flood-opacity": "0.30", result: "colored" });
-  const clipped = svgNode("feComposite", { in: "colored", in2: "shifted", operator: "in", result: "shadow" });
-  const merge = svgNode("feMerge");
-  merge.appendChild(svgNode("feMergeNode", { in: "shadow" }));
-  merge.appendChild(svgNode("feMergeNode", { in: "SourceGraphic" }));
-  [blur, offset, flood, clipped, merge].forEach(node => filter.appendChild(node));
-  defs.appendChild(filter);
-
+  // Shadows are baked into the displayed PNG itself. This avoids an SVG
+  // filter/compositing issue that can enlarge or displace frames on Safari.
+  // The original overlay PNGs and photo masks remain unchanged.
   function updateShadow() {
     shadowSettings.hidden = !state.shadowEnabled;
     strengthSlider.value = state.shadowStrength;
     strengthValue.textContent = `${state.shadowStrength}%`;
-    flood.setAttribute("flood-color", state.shadow);
-    flood.setAttribute("flood-opacity", (state.shadowStrength / 100 * 0.7).toFixed(3));
-    for (const frame of targets) {
-      if (state.shadowEnabled && state.shadowStrength > 0) {
-        frame.setAttribute("filter", "url(#memorySoftShadow)");
-      } else {
-        frame.removeAttribute("filter");
-      }
-    }
+    renderFrames();
   }
 
   function updateText() {
@@ -1990,13 +1972,32 @@ svg.addEventListener(
     return r * 0.2126 + g * 0.7152 + b * 0.0722 > 205;
   }
 
+  const SHADOW_PADDING = 55;
+
   function renderOne(path) {
     const p = prepared.get(path);
     const target = targets.find(t => t.dataset.originalPath === path);
     if (!p || !target) return;
-    const output = canvas(p.w, p.h);
+
+    const pad = SHADOW_PADDING;
+    const output = canvas(p.w + pad * 2, p.h + pad * 2);
     const ctx = output.getContext("2d");
-    ctx.drawImage(p.paper, 0, 0);
+
+    // Paint the soft drop shadow directly onto a padded transparent canvas.
+    // No SVG filter is applied to the image, keeping coordinates consistent.
+    if (state.shadowEnabled && state.shadowStrength > 0) {
+      const n = state.shadowStrength / 100;
+      ctx.save();
+      ctx.shadowColor = `${state.shadow}${Math.round(n * 155).toString(16).padStart(2, "0")}`;
+      ctx.shadowBlur = 24;
+      ctx.shadowOffsetX = 8;
+      ctx.shadowOffsetY = 12;
+      ctx.drawImage(p.paper, pad, pad);
+      ctx.restore();
+    }
+
+    ctx.drawImage(p.paper, pad, pad);
+
     // A tiny grey-blue edge preserves contrast for white / pale outlines.
     function drawInk(mask, color) {
       const tinted = colorize(mask, color);
@@ -2005,18 +2006,25 @@ svg.addEventListener(
         ctx.shadowColor = "rgba(55, 77, 100, 0.60)";
         ctx.shadowBlur = 5;
         ctx.shadowOffsetY = 1;
-        ctx.drawImage(tinted, 0, 0);
+        ctx.drawImage(tinted, pad, pad);
         ctx.restore();
       } else {
-        ctx.drawImage(tinted, 0, 0);
+        ctx.drawImage(tinted, pad, pad);
       }
     }
+
     drawInk(p.lineMask, state.frame);
-    if (path === PATHS[0]) drawInk(p.controlMask, state.match ? state.frame : state.controls);
-    target.setAttribute("x", p.x);
-    target.setAttribute("y", p.y);
-    target.setAttribute("width", p.w);
-    target.setAttribute("height", p.h);
+    if (path === PATHS[0]) {
+      drawInk(p.controlMask, state.match ? state.frame : state.controls);
+    }
+
+    // Crop positions are SVG canvas coordinates, not screen pixels.
+    target.removeAttribute("filter");
+    target.setAttribute("x", p.x - pad);
+    target.setAttribute("y", p.y - pad);
+    target.setAttribute("width", output.width);
+    target.setAttribute("height", output.height);
+    target.setAttribute("preserveAspectRatio", "none");
     target.setAttribute("href", output.toDataURL("image/png"));
   }
 
