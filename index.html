@@ -353,6 +353,49 @@ h1 {
 .effect-value { font-weight: normal; color: #91a8bc; }
 #effectAmount { width: 100%; margin: 11px 0 4px; accent-color: #93bce4; cursor: pointer; }
 #effectsLayer, #effectsLayer * { pointer-events: none !important; }
+/* FRAME STYLE — two easy-to-tap color choices */
+.frame-style-choices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.frame-choice {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 62px;
+  border: 1px solid #dceaf8;
+  border-radius: 13px;
+  background: #f8fbff;
+  color: #729bc5;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+.frame-choice input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+.frame-choice:has(input:checked) {
+  border-color: #93bce4;
+  background: #eef7ff;
+  box-shadow: inset 0 0 0 1px #b7d6f2;
+}
+.frame-choice:has(input:focus-visible) { outline: 2px solid #729bc5; outline-offset: 3px; }
+.frame-swatch {
+  display: inline-block;
+  width: 23px;
+  height: 23px;
+  flex: 0 0 23px;
+  border-radius: 50%;
+}
+.frame-swatch-black { background: #171717; border: 1px solid #171717; }
+.frame-swatch-white { background: #fff; border: 1px solid #b3c0d0; }
 </style>
 </head>
 
@@ -484,8 +527,8 @@ h1 {
           <text id="anniversaryTitlePreview" x="966" y="408"
                 font-family="Arial, sans-serif" font-size="29" font-weight="700"
                 fill="#333333"></text>
-          <text id="anniversaryCountPreview" x="966" y="480"
-                font-family="Arial, sans-serif" font-size="50" font-weight="700"
+          <text id="anniversaryCountPreview" x="966" y="490"
+                font-family="Arial, sans-serif" font-size="62" font-weight="700"
                 fill="#262626"></text>
         </g>
 
@@ -588,6 +631,18 @@ h1 {
   <section class="controls">
     <h2>♡ Customize ♡</h2>
 
+    <section class="custom-section" aria-labelledby="editorSectionTitle">
+      <div class="editor">
+        <p class="section-title" id="editorSectionTitle">PHOTO EDITOR</p>
+        <h3 id="editingTitle">Select a Photo ♡</h3>
+        <p class="hint">Upload a photo to start editing.<br>Drag to reposition your photo.</p>
+        <label class="zoom-control" for="zoomSlider">Zoom</label>
+        <input id="zoomSlider" type="range" min="0.5" max="4" step="0.01" value="1" disabled>
+        <p id="zoomValue">100%</p>
+        <button class="reset-button" id="resetButton" onclick="resetPhoto()" disabled>↩ Reset Position</button>
+      </div>
+    </section>
+
     <section class="custom-section" aria-labelledby="musicSectionTitle">
       <p class="section-title" id="musicSectionTitle">01 / MUSIC PLAYER</p>
       <label class="upload-card" id="card-musicPhoto">
@@ -684,17 +739,24 @@ h1 {
       <p class="section-hint">Small, softly blurred motifs drift inside your Memory only. Try a style and adjust it anytime ♡</p>
     </section>
 
-    <section class="custom-section" aria-labelledby="editorSectionTitle">
-      <div class="editor">
-        <p class="section-title" id="editorSectionTitle">06 / PHOTO EDITOR</p>
-        <h3 id="editingTitle">Select a Photo ♡</h3>
-        <p class="hint">Upload a photo to start editing.<br>Drag to reposition your photo.</p>
-        <label class="zoom-control" for="zoomSlider">Zoom</label>
-        <input id="zoomSlider" type="range" min="0.5" max="4" step="0.01" value="1" disabled>
-        <p id="zoomValue">100%</p>
-        <button class="reset-button" id="resetButton" onclick="resetPhoto()" disabled>↩ Reset Position</button>
+    <section class="custom-section" aria-labelledby="frameStyleSectionTitle">
+      <p class="section-title" id="frameStyleSectionTitle">06 / FRAME STYLE</p>
+      <div class="frame-style-choices" role="group" aria-label="Frame outline color">
+        <label class="frame-choice">
+          <input type="radio" name="frameStyle" value="black" checked>
+          <span class="frame-swatch frame-swatch-black" aria-hidden="true"></span>
+          Black
+        </label>
+        <label class="frame-choice">
+          <input type="radio" name="frameStyle" value="white">
+          <span class="frame-swatch frame-swatch-white" aria-hidden="true"></span>
+          White
+        </label>
       </div>
+      <p class="section-hint">Changes frame outlines, music controls and the seekbar together. Text stays dark for readability ♡</p>
     </section>
+
+
   </section>
 
 </main>
@@ -1416,6 +1478,19 @@ svg.addEventListener(
     const anniversaryUTC = Date.UTC(parts[0], parts[1] - 1, parts[2]);
     const days = Math.round((todayUTC - anniversaryUTC) / 86400000);
     output.textContent = days === 0 ? "D-Day" : days > 0 ? "D+" + days : "D" + days;
+    // Make the count more prominent, but keep very long counts away from the photo.
+    output.removeAttribute("textLength");
+    output.removeAttribute("lengthAdjust");
+    let countSize = 62;
+    output.setAttribute("font-size", String(countSize));
+    while (countSize > 35 && output.getComputedTextLength() > 288) {
+      countSize--;
+      output.setAttribute("font-size", String(countSize));
+    }
+    if (output.getComputedTextLength() > 288) {
+      output.setAttribute("textLength", "288");
+      output.setAttribute("lengthAdjust", "spacingAndGlyphs");
+    }
   }
 
   // Keep song titles on one line. Shrink the font only when necessary.
@@ -1671,50 +1746,133 @@ svg.addEventListener(
 </script>
 
 <script>
-/* ===== SUBTLE TRANSLUCENT WHITE PANELS =====
-   Adapt the existing PNG layers at runtime, without changing the PNG files,
-   transparent photo windows, black icons or frame outlines.
-   The original PNGs remain untouched for photo-mask generation. */
+/* ===== FRAME STYLE: BLACK / WHITE =====
+   Use the existing PNG assets unchanged, with a soft 87% white surface for
+   Music Player and D-Day. Black or white ink applies to all four frame
+   outlines, including the music player's seekbar and playback icons.
+   Photo masks continue to use the original PNGs, never these display copies.
+*/
 (function () {
-  const OVERLAYS = ["images/musicplayer.PNG", "images/d_day.PNG"];
+  const PATHS = [
+    "images/musicplayer.PNG", "images/d_day.PNG",
+    "images/polaroid_1.PNG", "images/polaroid_2.PNG"
+  ];
   const WHITE_OPACITY = 0.87;
+  const NS = "http://www.w3.org/2000/svg";
+  const targets = Array.from(document.querySelectorAll("#mainCanvas image.frame"));
+  const radios = Array.from(document.querySelectorAll('input[name="frameStyle"]'));
+  const variants = new Map();
+  let choice = "black";
 
-  async function softenPanel(path) {
-    const target = Array.from(document.querySelectorAll("#mainCanvas image.frame"))
-      .find(image => image.getAttribute("href") === path);
-    if (!target) return;
+  const clamp = x => Math.min(1, Math.max(0, x));
+  function makeCanvas(width, height) {
+    const c = document.createElement("canvas");
+    c.width = width;
+    c.height = height;
+    return c;
+  }
 
-    try {
-      const source = new Image();
-      source.src = path;
-      await source.decode();
+  async function buildVariants(path) {
+    const source = new Image();
+    source.src = path;
+    await source.decode();
+    const width = source.naturalWidth;
+    const height = source.naturalHeight;
+    const original = makeCanvas(width, height);
+    const originalCtx = original.getContext("2d", { willReadFrequently: true });
+    originalCtx.drawImage(source, 0, 0);
+    const pixels = originalCtx.getImageData(0, 0, width, height);
+    const base = pixels.data;
+    const soften = PATHS.indexOf(path) < 2;
 
-      const canvas = document.createElement("canvas");
-      canvas.width = source.naturalWidth;
-      canvas.height = source.naturalHeight;
-      const ctx = canvas.getContext("2d", { willReadFrequently: true });
-      ctx.drawImage(source, 0, 0);
-      const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const data = pixels.data;
+    // Black variant is the current design, including translucent white cards.
+    const black = makeCanvas(width, height);
+    const bctx = black.getContext("2d");
+    const blackData = new ImageData(new Uint8ClampedArray(base), width, height);
+    for (let i = 0; i < blackData.data.length; i += 4) {
+      if (!blackData.data[i + 3] || !soften) continue;
+      const lightness = Math.min(blackData.data[i], blackData.data[i + 1], blackData.data[i + 2]);
+      const whiteness = clamp((lightness - 165) / 85);
+      blackData.data[i + 3] = Math.round(blackData.data[i + 3] * (1 - (1 - WHITE_OPACITY) * whiteness));
+    }
+    bctx.putImageData(blackData, 0, 0);
 
-      for (let i = 0; i < data.length; i += 4) {
-        if (data[i + 3] === 0) continue;
-        // Bright whites become translucent; dark strokes remain fully opaque.
-        // Smooth fade between them preserves antialiased frame borders.
-        const lightness = Math.min(data[i], data[i + 1], data[i + 2]);
-        const whiteness = Math.max(0, Math.min(1, (lightness - 165) / 85));
-        data[i + 3] = Math.round(data[i + 3] * (1 - (1 - WHITE_OPACITY) * whiteness));
+    // Separate the painted white paper and dark ink so that only ink changes.
+    const paper = makeCanvas(width, height);
+    const paperCtx = paper.getContext("2d");
+    const paperData = new ImageData(new Uint8ClampedArray(base), width, height);
+    const inkCanvas = makeCanvas(width, height);
+    const inkCtx = inkCanvas.getContext("2d");
+    const inkData = inkCtx.createImageData(width, height);
+    const pd = paperData.data;
+    const id = inkData.data;
+    for (let i = 0; i < base.length; i += 4) {
+      const alpha = base[i + 3];
+      if (!alpha) continue;
+      const lightness = Math.min(base[i], base[i + 1], base[i + 2]);
+      // Include anti-aliased edges of black strokes, controls and outlines.
+      const ink = clamp((230 - lightness) / 185);
+      if (ink > 0) {
+        id[i] = 255;
+        id[i + 1] = 255;
+        id[i + 2] = 255;
+        id[i + 3] = Math.round(alpha * ink);
       }
+      // Reconstruct the original white panels beneath the recolored ink.
+      // The extra white pixels also make white playback buttons legible.
+      pd[i] = 255;
+      pd[i + 1] = 255;
+      pd[i + 2] = 255;
+      pd[i + 3] = Math.round(alpha * (soften ? WHITE_OPACITY : 1));
+    }
+    paperCtx.putImageData(paperData, 0, 0);
+    inkCtx.putImageData(inkData, 0, 0);
 
-      ctx.putImageData(pixels, 0, 0);
-      target.setAttribute("href", canvas.toDataURL("image/png"));
-    } catch (error) {
-      // Keep the unmodified original frame if processing is unsupported.
-      console.warn("Unable to soften frame:", path, error);
+    const white = makeCanvas(width, height);
+    const whiteCtx = white.getContext("2d");
+    whiteCtx.drawImage(paper, 0, 0);
+    // Subtle blue-grey edging keeps white shapes visible on pale images.
+    whiteCtx.save();
+    whiteCtx.shadowColor = "rgba(59, 76, 96, 0.70)";
+    whiteCtx.shadowBlur = 7;
+    whiteCtx.shadowOffsetY = 1;
+    whiteCtx.drawImage(inkCanvas, 0, 0);
+    whiteCtx.restore();
+
+    return { black: black.toDataURL("image/png"), white: white.toDataURL("image/png") };
+  }
+
+  function update() {
+    for (const path of PATHS) {
+      const pair = variants.get(path);
+      const target = targets.find(frame => frame.dataset.originalPath === path);
+      if (target && pair) target.setAttribute("href", pair[choice]);
     }
   }
 
-  OVERLAYS.forEach(softenPanel);
+  // Retain original paths for variant selection even after setting data URLs.
+  for (const target of targets) {
+    target.dataset.originalPath = target.getAttribute("href");
+  }
+  for (const radio of radios) {
+    radio.addEventListener("change", () => {
+      if (radio.checked) {
+        choice = radio.value === "white" ? "white" : "black";
+        update();
+      }
+    });
+  }
+  // Build in sequence to avoid holding four decoded PNGs at once.
+  (async () => {
+    for (const path of PATHS) {
+      try {
+        variants.set(path, await buildVariants(path));
+        update();
+      } catch (error) {
+        console.warn("Frame style couldn't load:", path, error);
+      }
+    }
+  })();
 })();
 </script>
 </body>
