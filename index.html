@@ -1164,5 +1164,176 @@ svg.addEventListener(
 
 </script>
 
+  <script>
+/* ===== BACKGROUND CUSTOMIZER ===== */
+
+(function () {
+  const NS = "http://www.w3.org/2000/svg";
+  const ID = "backgroundPhoto";
+
+  // Register background as an editable photo
+  names[ID] = "Background";
+
+  frames[ID] = {
+    x: 0,
+    y: 0,
+    w: 2048,
+    h: 1430,
+    angle: 0
+  };
+
+  photos[ID] = {
+    url: null,
+    naturalWidth: 0,
+    naturalHeight: 0,
+    offsetX: 0,
+    offsetY: 0,
+    zoom: 1
+  };
+
+  // Background image goes behind every frame
+  const backgroundImage = document.createElementNS(NS, "image");
+
+  backgroundImage.setAttribute("id", ID);
+  backgroundImage.setAttribute("preserveAspectRatio", "none");
+  backgroundImage.setAttribute("pointer-events", "none");
+
+  const firstFrame = svg.querySelector("g[mask]");
+  svg.insertBefore(backgroundImage, firstFrame);
+
+  // Background drag area
+  const backgroundHit = document.createElementNS(NS, "rect");
+
+  backgroundHit.setAttribute("class", "photo-hit");
+  backgroundHit.setAttribute("data-id", ID);
+  backgroundHit.setAttribute("x", "0");
+  backgroundHit.setAttribute("y", "0");
+  backgroundHit.setAttribute("width", "2048");
+  backgroundHit.setAttribute("height", "1430");
+  backgroundHit.style.stroke = "none";
+
+  const hitAreas = document.getElementById("hitAreas");
+  hitAreas.insertBefore(backgroundHit, hitAreas.firstChild);
+
+  // Background controls
+  const section = document.createElement("div");
+  section.style.marginTop = "28px";
+
+  section.innerHTML = `
+    <p class="section-title">03 / BACKGROUND</p>
+
+    <label
+      class="upload-card"
+      id="card-backgroundPhoto"
+      style="min-height:100px;"
+    >
+      <span class="icon">✧</span>
+      <span class="name">Background Image</span>
+      <span class="status">+ Upload Background</span>
+
+      <input
+        id="backgroundInput"
+        type="file"
+        accept="image/*"
+        onchange="setPhoto(event, 'backgroundPhoto')"
+      >
+    </label>
+
+    <p
+      style="
+        margin:14px 0;
+        text-align:center;
+        color:#8191a1;
+        font-size:12px;
+        line-height:1.8;
+      "
+    >
+      Select the background to adjust its position.<br>
+      Drag to move · Use Zoom to resize
+    </p>
+
+    <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
+
+      <button
+        type="button"
+        class="reset-button"
+        id="editBackgroundButton"
+        style="background:#93bce4;"
+      >
+        ✧ Edit Background
+      </button>
+
+      <button
+        type="button"
+        class="reset-button"
+        id="removeBackgroundButton"
+        style="background:#aab8c7;"
+      >
+        × Remove
+      </button>
+
+    </div>
+  `;
+
+  document.querySelector(".controls").appendChild(section);
+
+  // Select background for editing
+  document
+    .getElementById("editBackgroundButton")
+    .addEventListener("click", function () {
+      if (!photos[ID].url) return;
+      selectPhoto(ID);
+    });
+
+  // Remove uploaded background
+  document
+    .getElementById("removeBackgroundButton")
+    .addEventListener("click", function () {
+      const photo = photos[ID];
+
+      if (!photo.url) return;
+
+      URL.revokeObjectURL(photo.url);
+
+      photo.url = null;
+      photo.naturalWidth = 0;
+      photo.naturalHeight = 0;
+      photo.offsetX = 0;
+      photo.offsetY = 0;
+      photo.zoom = 1;
+
+      backgroundImage.removeAttribute("href");
+
+      const input = document.getElementById("backgroundInput");
+      input.value = "";
+
+      const card = document.getElementById("card-backgroundPhoto");
+      card.classList.remove("loaded");
+
+      card.querySelector(".status").textContent =
+        "+ Upload Background";
+
+      if (selectedPhoto === ID) {
+        selectedPhoto = null;
+
+        document.querySelectorAll(".photo-hit").forEach(area => {
+          area.classList.remove("selected");
+        });
+
+        document.getElementById("editingTitle").textContent =
+          "Select a Photo ♡";
+
+        slider.disabled = true;
+        slider.value = 1;
+
+        resetButton.disabled = true;
+
+        updateZoomLabel();
+      }
+    });
+
+})();
+</script>
+  
 </body>
 </html>
