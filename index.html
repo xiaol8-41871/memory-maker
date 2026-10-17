@@ -1809,164 +1809,123 @@ svg.addEventListener(
 </script>
 
 <script>
-/* ===== COLORS — STABLE ORIGINAL OVERLAY GEOMETRY, NO SHADOWS =====
-   Rebuild on the previously working full-size 2048 x 1430 frame layer.
-   No SVG filters, cropping, offsets, or changes to image x/y/width/height.
+/* ===== SAFE FRAME COLORS: ONLY STATIC PNG SOURCES =====
+   Preserve the original PNG URL and SVG coordinates at all times.
+   No toDataURL(), canvas rebuild or replacement of SVG <image> href.
+   SVG color matrix maps dark outline ink to a chosen color while keeping
+   white frame paper white. This avoids post-load image replacement.
 */
 (function () {
-  const PATHS = [
-    "images/musicplayer.PNG", "images/d_day.PNG",
-    "images/polaroid_1.PNG", "images/polaroid_2.PNG"
-  ];
-  const targets = Array.from(document.querySelectorAll("#mainCanvas image.frame"));
-  const templates = new Map();
-  const state = { frame: "#171717", text: "#202020", controls: "#171717", match: true };
+  const NS = "http://www.w3.org/2000/svg";
+  const svgRoot = document.getElementById("mainCanvas");
+  const defs = svgRoot.querySelector("defs");
+  const framesOnCanvas = Array.from(svgRoot.querySelectorAll("image.frame"));
   const matchBox = document.getElementById("matchFrameColor");
   const controlsColors = document.getElementById("controlsColors");
-  const clamp = n => Math.max(0, Math.min(1, n));
+  const state = {
+    frame: "#171717", text: "#202020", controls: "#171717", match: true
+  };
 
-  function canvas(w, h) {
-    const el = document.createElement("canvas");
-    el.width = w;
-    el.height = h;
-    return el;
+  // SVG feColorMatrix recolors only the dark pixels, leaving bright whites
+  // intact. The uploaded PNGs themselves stay completely unchanged.
+  function colorValues(hex) {
+    const rgb = [1,3,5].map(i => parseInt(hex.slice(i,i+2),16)/255);
+    const [r,g,b] = rgb;
+    return `${1-r} 0 0 0 ${r}  0 ${1-g} 0 0 ${g}  0 0 ${1-b} 0 ${b}  0 0 0 1 0`;
   }
-
-  async function makeTemplate(path, index) {
-    const image = new Image();
-    image.src = path;
-    await image.decode();
-    const W = image.naturalWidth, H = image.naturalHeight;
-    const source = canvas(W, H);
-    const sourceCtx = source.getContext("2d", { willReadFrequently: true });
-    sourceCtx.drawImage(image, 0, 0);
-    const raw = sourceCtx.getImageData(0, 0, W, H).data;
-    const paper = canvas(W, H);
-    const paperCtx = paper.getContext("2d");
-    const paperPixels = paperCtx.createImageData(W, H);
-    const ink = canvas(W, H);
-    const inkCtx = ink.getContext("2d");
-    const inkPixels = inkCtx.createImageData(W, H);
-    const controls = canvas(W, H);
-    const controlsCtx = controls.getContext("2d");
-    const controlsPixels = controlsCtx.createImageData(W, H);
-    const softPaper = index < 2;
-
-    // Preserve every pixel's original coordinates. White parts are 87% opaque
-    // on the music player / D-Day, while borders and playback glyphs stay solid.
-    for (let i = 0; i < raw.length; i += 4) {
-      const alpha = raw[i + 3];
-      if (!alpha) continue;
-      const darkness = clamp((230 - Math.min(raw[i], raw[i + 1], raw[i + 2])) / 185);
-      paperPixels.data[i] = 255;
-      paperPixels.data[i+1] = 255;
-      paperPixels.data[i+2] = 255;
-      paperPixels.data[i+3] = Math.round(alpha * (softPaper ? 0.87 : 1));
-      if (!darkness) continue;
-      const x = (i / 4) % W;
-      const y = Math.floor(i / 4 / W);
-      const isPlayback = index === 0 && x >= 480 && x <= 920 && y >= 870 && y <= 1060;
-      const data = isPlayback ? controlsPixels.data : inkPixels.data;
-      data[i] = data[i+1] = data[i+2] = 255;
-      data[i+3] = Math.round(alpha * darkness);
-    }
-    paperCtx.putImageData(paperPixels, 0, 0);
-    inkCtx.putImageData(inkPixels, 0, 0);
-    controlsCtx.putImageData(controlsPixels, 0, 0);
-    return { paper, ink, controls };
+  function makeColorFilter(id, color) {
+    const f=document.createElementNS(NS, "filter");
+    f.id=id;
+    f.setAttribute("filterUnits","userSpaceOnUse");
+    f.setAttribute("x","0"); f.setAttribute("y","0");
+    f.setAttribute("width","2048"); f.setAttribute("height","1430");
+    f.setAttribute("color-interpolation-filters","sRGB");
+    const matrix=document.createElementNS(NS,"feColorMatrix");
+    matrix.setAttribute("type","matrix");
+    matrix.setAttribute("values",colorValues(color));
+    f.appendChild(matrix);
+    defs.appendChild(f);
+    return matrix;
   }
+  const frameMatrix=makeColorFilter("memorySafeFrameTint",state.frame);
+  const controlsMatrix=makeColorFilter("memorySafeControlsTint",state.controls);
 
-  function tinted(mask, color) {
-    const out = canvas(mask.width, mask.height);
-    const ctx = out.getContext("2d");
-    ctx.drawImage(mask, 0, 0);
-    ctx.globalCompositeOperation = "source-in";
-    ctx.fillStyle = color;
-    ctx.fillRect(0, 0, out.width, out.height);
-    return out;
-  }
+  // Clip the separately tinted playback buttons and seek bar to their
+  // original area. Both copies load the ORIGINAL full-size PNG, not data URLs.
+  const clip=document.createElementNS(NS,"clipPath");
+  clip.id="memoryControlsClip";
+  clip.setAttribute("clipPathUnits","userSpaceOnUse");
+  const rect=document.createElementNS(NS,"rect");
+  rect.setAttribute("x","473"); rect.setAttribute("y","868");
+  rect.setAttribute("width","450"); rect.setAttribute("height","245");
+  clip.appendChild(rect); defs.appendChild(clip);
+  framesOnCanvas.forEach((frame,i) => {
+    frame.setAttribute("filter","url(#memorySafeFrameTint)");
+    // Mild translucency preserves the background-through-white-card effect.
+    if (i < 2) frame.setAttribute("opacity","0.91");
+    // Leave x/y/width/height/href exactly as they are in the working version.
+  });
+  const musicFrame=framesOnCanvas[0];
+  const controlsOverlay=document.createElementNS(NS,"image");
+  controlsOverlay.setAttribute("href","images/musicplayer.PNG");
+  controlsOverlay.setAttribute("x","0"); controlsOverlay.setAttribute("y","0");
+  controlsOverlay.setAttribute("width","2048");
+  controlsOverlay.setAttribute("height","1430");
+  controlsOverlay.setAttribute("pointer-events","none");
+  controlsOverlay.setAttribute("clip-path","url(#memoryControlsClip)");
+  controlsOverlay.setAttribute("filter","url(#memorySafeControlsTint)");
+  controlsOverlay.setAttribute("opacity","0.91");
+  musicFrame.parentNode.insertBefore(controlsOverlay,musicFrame.nextSibling);
 
   function updateText() {
     for (const id of ["songTitlePreview", "artistPreview", "anniversaryTitlePreview", "anniversaryCountPreview"]) {
-      const el = document.getElementById(id);
-      if (el) el.setAttribute("fill", state.text);
+      const el=document.getElementById(id);
+      if (el) el.setAttribute("fill",state.text);
     }
-    document.getElementById("artistPreview").setAttribute("opacity", "0.79");
-    document.getElementById("anniversaryTitlePreview").setAttribute("opacity", "0.93");
+    const artist=document.getElementById("artistPreview");
+    if (artist) artist.setAttribute("opacity","0.79");
+    const heading=document.getElementById("anniversaryTitlePreview");
+    if (heading) heading.setAttribute("opacity","0.93");
   }
-
-  let requested = false;
-  function updateFrames() {
-    if (requested) return;
-    requested = true;
-    requestAnimationFrame(() => {
-      requested = false;
-      for (let i = 0; i < PATHS.length; i++) {
-        const prepared = templates.get(PATHS[i]);
-        if (!prepared) continue;
-        const output = canvas(2048, 1430);
-        const ctx = output.getContext("2d");
-        ctx.drawImage(prepared.paper, 0, 0);
-        ctx.drawImage(tinted(prepared.ink, state.frame), 0, 0);
-        if (i === 0) ctx.drawImage(tinted(prepared.controls, state.match ? state.frame : state.controls), 0, 0);
-        // NOTE: Do not set/change x, y, width, height, preserveAspectRatio or filter.
-        // The SVG frame retains the original unchanged geometry from the stable version.
-        targets[i].setAttribute("href", output.toDataURL("image/png"));
-      }
-    });
-  }
-
   function syncPalette(key) {
-    const picker = document.querySelector(`[data-custom-color="${key}"]`);
-    if (picker) picker.value = state[key];
+    const picker=document.querySelector(`[data-custom-color="${key}"]`);
+    if (picker) picker.value=state[key];
     for (const button of document.querySelectorAll(`[data-color-target="${key}"]`)) {
-      const on = button.dataset.color.toLowerCase() === state[key];
-      button.classList.toggle("is-active", on);
-      button.setAttribute("aria-pressed", String(on));
+      const active=button.dataset.color.toLowerCase()===state[key];
+      button.classList.toggle("is-active",active);
+      button.setAttribute("aria-pressed",String(active));
     }
   }
-
-  function chooseColor(key, color) {
+  function recolorFrames() {
+    frameMatrix.setAttribute("values",colorValues(state.frame));
+    controlsMatrix.setAttribute("values",colorValues(state.match?state.frame:state.controls));
+  }
+  function chooseColor(key,color) {
     if (!/^#[0-9a-f]{6}$/i.test(color)) return;
-    state[key] = color.toLowerCase();
+    state[key]=color.toLowerCase();
     syncPalette(key);
-    if (key === "frame" && state.match) {
-      state.controls = state.frame;
+    if (key==="frame" && state.match) {
+      state.controls=state.frame;
       syncPalette("controls");
     }
-    if (key === "text") updateText();
-    else updateFrames();
+    if (key==="text") updateText();
+    else recolorFrames();
   }
-
-  document.querySelectorAll("[data-color-target]").forEach(button => {
-    button.addEventListener("click", () => chooseColor(button.dataset.colorTarget, button.dataset.color));
+  document.querySelectorAll("[data-color-target]").forEach(b=>{
+    b.addEventListener("click",()=>chooseColor(b.dataset.colorTarget,b.dataset.color));
   });
-  document.querySelectorAll("[data-custom-color]").forEach(picker => {
-    picker.addEventListener("input", () => chooseColor(picker.dataset.customColor, picker.value));
-    picker.addEventListener("change", () => chooseColor(picker.dataset.customColor, picker.value));
+  document.querySelectorAll("[data-custom-color]").forEach(p=>{
+    p.addEventListener("input",()=>chooseColor(p.dataset.customColor,p.value));
+    p.addEventListener("change",()=>chooseColor(p.dataset.customColor,p.value));
   });
-  matchBox.addEventListener("change", () => {
-    state.match = matchBox.checked;
-    controlsColors.hidden = state.match;
-    if (state.match) {
-      state.controls = state.frame;
-      syncPalette("controls");
-    }
-    updateFrames();
+  matchBox.addEventListener("change",()=>{
+    state.match=matchBox.checked;
+    controlsColors.hidden=state.match;
+    if(state.match){state.controls=state.frame;syncPalette("controls");}
+    recolorFrames();
   });
-
   updateText();
-  // Preserve the known-working original frame PNG while colors initialize.
-  (async () => {
-    for (let i = 0; i < PATHS.length; i++) {
-      try {
-        templates.set(PATHS[i], await makeTemplate(PATHS[i], i));
-        updateFrames();
-      } catch (err) {
-        console.warn("Could not recolor frame", PATHS[i], err);
-      }
-    }
-  })();
+  recolorFrames();
 })();
 </script>
 </body>
