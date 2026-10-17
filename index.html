@@ -1374,19 +1374,17 @@ svg.addEventListener(
     output.textContent = days === 0 ? "D-Day" : days > 0 ? "D+" + days : "D" + days;
   }
 
-  // Fit a song title naturally on one line, or at most two lines.
-  // Choose the largest readable size that fits the music player's white area.
+  // Keep song titles on one line. Shrink the font only when necessary.
   const songInput = document.getElementById("songTitleInput");
   const songPreview = document.getElementById("songTitlePreview");
   const measureCanvas = document.createElement("canvas");
   const measureContext = measureCanvas.getContext("2d");
   const songMaxWidth = 417;
   const songMaxSize = 37;
-  const songMinSize = 15;
-  const lineTwoBaseline = 801;
+  const songMinSize = 13;
 
   function songCharacters(value) {
-    // Keep emoji, combining characters, and other Unicode graphemes intact.
+    // Never split emoji or combined Unicode characters.
     if (typeof Intl !== "undefined" && Intl.Segmenter) {
       return [...new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(value)]
         .map(part => part.segment);
@@ -1394,79 +1392,28 @@ svg.addEventListener(
     return Array.from(value);
   }
 
-  function wrapSongAtSize(chars, size) {
-    measureContext.font = `700 ${size}px Arial, sans-serif`;
-    const width = line => measureContext.measureText(line).width;
-    const whole = chars.join("");
-    if (width(whole) <= songMaxWidth) return [whole];
-
-    // Prefer natural word boundaries, including Japanese words.
-    const boundaries = new Set();
-    if (typeof Intl !== "undefined" && Intl.Segmenter) {
-      for (const segment of new Intl.Segmenter("ja", { granularity: "word" }).segment(whole)) {
-        boundaries.add(segment.index + segment.segment.length);
-      }
-    }
-
-    let best = null;
-    let offset = 0;
-    for (let i = 1; i < chars.length; i++) {
-      offset += chars[i - 1].length;
-      const first = chars.slice(0, i).join("").trimEnd();
-      const second = chars.slice(i).join("").trimStart();
-      if (!first || !second) continue;
-      const firstWidth = width(first);
-      const secondWidth = width(second);
-      if (firstWidth > songMaxWidth || secondWidth > songMaxWidth) continue;
-      const splitsLatinWord = /[A-Za-z0-9]$/.test(first) && /^[A-Za-z0-9]/.test(second);
-      const isWordBoundary = boundaries.size ? boundaries.has(offset) : !splitsLatinWord;
-      if (!isWordBoundary) continue;
-      const score = Math.abs(firstWidth - secondWidth);
-      if (!best || score < best.score) best = { lines: [first, second], score };
-    }
-    return best ? best.lines : null;
-  }
-
   function updateSongTitle() {
     const value = songInput.value.trim().replace(/\s+/g, " ");
-    songPreview.replaceChildren();
+    songPreview.textContent = value;
+    songPreview.setAttribute("y", "794");
+    songPreview.removeAttribute("textLength");
+    songPreview.removeAttribute("lengthAdjust");
     if (!value) return;
 
-    const chars = songCharacters(value);
+    // Use the biggest font that will fit within the player's text area.
     let size = songMaxSize;
-    let lines = null;
-    for (; size >= songMinSize; size--) {
-      lines = wrapSongAtSize(chars, size);
-      if (lines) break;
-    }
-
-    // An exceptionally long title may not fit legibly in two lines.
-    // Limit only that rare preview case without changing the user's input.
-    if (!lines) {
-      size = songMinSize;
+    for (; size > songMinSize; size--) {
       measureContext.font = `700 ${size}px Arial, sans-serif`;
-      const width = line => measureContext.measureText(line).width;
-      let first = "";
-      let index = 0;
-      while (index < chars.length && width(first + chars[index]) <= songMaxWidth) {
-        first += chars[index++];
-      }
-      let second = "";
-      while (index < chars.length && width(second + chars[index] + "…") <= songMaxWidth) {
-        second += chars[index++];
-      }
-      lines = [first.trimEnd(), (second.trimEnd() + "…")];
+      if (measureContext.measureText(value).width <= songMaxWidth) break;
     }
-
     songPreview.setAttribute("font-size", String(size));
-    const lineGap = size + 3;
-    const firstBaseline = lines.length === 1 ? 794 : lineTwoBaseline - lineGap;
-    for (let i = 0; i < lines.length; i++) {
-      const span = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-      span.setAttribute("x", "474");
-      span.setAttribute("y", String(firstBaseline + i * lineGap));
-      span.textContent = lines[i];
-      songPreview.appendChild(span);
+
+    // For unusually long text, fit on one line without wrapping or clipping.
+    // textLength is only needed after reaching the minimum font size.
+    measureContext.font = `700 ${size}px Arial, sans-serif`;
+    if (measureContext.measureText(value).width > songMaxWidth) {
+      songPreview.setAttribute("textLength", String(songMaxWidth));
+      songPreview.setAttribute("lengthAdjust", "spacingAndGlyphs");
     }
   }
 
