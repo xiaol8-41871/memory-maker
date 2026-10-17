@@ -1848,7 +1848,18 @@ svg.addEventListener(
     return matrix;
   }
   const frameMatrix=makeColorFilter("memorySafeFrameTint",state.frame);
+
+  // The original musicplayer.PNG contains opaque white paper BEHIND the icons.
+  // Painting another clipped copy of that PNG produces a visible white rectangle
+  // on the translucent player. Keep only the dark seek bar / button ink here:
+  // dark pixels become the selected color; white pixels become transparent.
+  // This does not replace, crop, resize or regenerate any frame image.
+  function controlsInkValues(hex) {
+    const rgb = [1,3,5].map(i => parseInt(hex.slice(i,i+2),16)/255);
+    return `0 0 0 0 ${rgb[0]}  0 0 0 0 ${rgb[1]}  0 0 0 0 ${rgb[2]}  -1 0 0 0 1`;
+  }
   const controlsMatrix=makeColorFilter("memorySafeControlsTint",state.controls);
+  controlsMatrix.setAttribute("values",controlsInkValues(state.controls));
 
   // Clip the separately tinted playback buttons and seek bar to their
   // original area. Both copies load the ORIGINAL full-size PNG, not data URLs.
@@ -1898,7 +1909,7 @@ svg.addEventListener(
   }
   function recolorFrames() {
     frameMatrix.setAttribute("values",colorValues(state.frame));
-    controlsMatrix.setAttribute("values",colorValues(state.match?state.frame:state.controls));
+    controlsMatrix.setAttribute("values",controlsInkValues(state.match?state.frame:state.controls));
   }
   function chooseColor(key,color) {
     if (!/^#[0-9a-f]{6}$/i.test(color)) return;
