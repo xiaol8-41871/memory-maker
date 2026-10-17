@@ -333,6 +333,26 @@ h1 {
 @media (max-width: 500px) {
   .detail-grid { grid-template-columns: minmax(0, 1fr); gap: 11px; }
 }
+/* GENTLE MOTIF EFFECTS */
+.effect-select {
+  width: 100%;
+  min-height: 43px;
+  margin-top: 1px;
+  padding: 10px 12px;
+  border: 1px solid #dceaf8;
+  border-radius: 11px;
+  background: #f8fbff;
+  color: #52657a;
+  font: 14px Arial, sans-serif;
+  cursor: pointer;
+}
+.effect-select:focus-visible,
+#effectAmount:focus-visible { outline: 2px solid #93bce4; outline-offset: 3px; }
+.effect-adjust { margin-top: 16px; }
+.effect-adjust > .detail-field { flex-direction: row; align-items: center; justify-content: space-between; }
+.effect-value { font-weight: normal; color: #91a8bc; }
+#effectAmount { width: 100%; margin: 11px 0 4px; accent-color: #93bce4; cursor: pointer; }
+#effectsLayer, #effectsLayer * { pointer-events: none !important; }
 </style>
 </head>
 
@@ -553,6 +573,9 @@ h1 {
 
         </g>
 
+        <!-- Soft falling effects are always above the artwork, never capture clicks. -->
+        <g id="effectsLayer" pointer-events="none" aria-hidden="true"></g>
+
       </svg>
 
     </div>
@@ -640,9 +663,30 @@ h1 {
       </div>
     </section>
 
+    <section class="custom-section" aria-labelledby="effectsSectionTitle">
+      <p class="section-title" id="effectsSectionTitle">05 / EFFECTS</p>
+      <label class="detail-field" for="effectMotif">
+        Falling Motif
+        <select id="effectMotif" class="effect-select">
+          <option value="none">None · No Effect</option>
+          <option value="flowers">✿ Flowers</option>
+          <option value="snow">❄ Snow</option>
+          <option value="stars">✧ Stars</option>
+          <option value="hearts">♡ Hearts</option>
+          <option value="butterflies">୨୧ Butterflies</option>
+          <option value="bubbles">◌ Bubbles</option>
+        </select>
+      </label>
+      <div class="effect-adjust">
+        <label class="detail-field" for="effectAmount">Amount <span id="effectAmountLabel" class="effect-value">Soft</span></label>
+        <input id="effectAmount" type="range" min="1" max="3" step="1" value="1" aria-label="Effect amount">
+      </div>
+      <p class="section-hint">Small, softly blurred motifs drift inside your Memory only. Try a style and adjust it anytime ♡</p>
+    </section>
+
     <section class="custom-section" aria-labelledby="editorSectionTitle">
       <div class="editor">
-        <p class="section-title" id="editorSectionTitle">05 / PHOTO EDITOR</p>
+        <p class="section-title" id="editorSectionTitle">06 / PHOTO EDITOR</p>
         <h3 id="editingTitle">Select a Photo ♡</h3>
         <p class="hint">Upload a photo to start editing.<br>Drag to reposition your photo.</p>
         <label class="zoom-control" for="zoomSlider">Zoom</label>
@@ -1432,6 +1476,197 @@ svg.addEventListener(
   });
   document.getElementById("anniversaryDateInput").addEventListener("input", updateDayCount);
   updateDayCount();
+})();
+</script>
+<script>
+/* ===== FALLING MOTIFS: SVG OVERLAY (no external images) ===== */
+(function () {
+  const NS = "http://www.w3.org/2000/svg";
+  const WIDTH = 2048;
+  const HEIGHT = 1430;
+  const layer = document.getElementById("effectsLayer");
+  const chooser = document.getElementById("effectMotif");
+  const amount = document.getElementById("effectAmount");
+  const amountLabel = document.getElementById("effectAmountLabel");
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const quantities = [0, 19, 34, 49];
+  const amountNames = ["", "Soft", "Balanced", "Full"];
+  let particles = [];
+  let frameId = null;
+  let lastTime = null;
+  let elapsed = 0;
+
+  function node(tag, attrs = {}) {
+    const el = document.createElementNS(NS, tag);
+    for (const [key, value] of Object.entries(attrs)) {
+      el.setAttribute(key, String(value));
+    }
+    return el;
+  }
+  function random(min, max) { return min + Math.random() * (max - min); }
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+  // Each motif is drawn in a small 20-by-20 coordinate space, then scaled.
+  // Duplicate faint layers plus tiny SVG blur give them soft, dreamy edges.
+  const styles = {
+    flowers: { colors: ["#ffe4ed", "#ffcfde", "#f6dff8", "#fff2f8"], scale: [1.1, 2.1], speed: [34, 76], sway: [22, 68] },
+    snow: { colors: ["#ffffff", "#eaf9ff", "#dff1ff"], scale: [0.48, 1.35], speed: [24, 56], sway: [14, 35] },
+    stars: { colors: ["#fff9df", "#ffffff", "#def6ff", "#e9e3ff"], scale: [0.9, 1.75], speed: [31, 64], sway: [15, 48] },
+    hearts: { colors: ["#ffe2ed", "#f6c7d7", "#e7d5f8", "#fff0f6"], scale: [0.88, 1.7], speed: [35, 77], sway: [16, 55] },
+    butterflies: { colors: ["#e8dcff", "#dceeff", "#ffdfef", "#fff3fb"], scale: [1.08, 1.9], speed: [34, 68], sway: [20, 65] },
+    bubbles: { colors: ["#ffffff", "#dcefff", "#e8f8ff"], scale: [0.95, 2], speed: [25, 55], sway: [12, 40] }
+  };
+
+  // The fill/stroke outlines are deliberately simple to avoid big sticker-like graphics.
+  function drawMotif(holder, type, color) {
+    if (type === "flowers") {
+      for (let i = 0; i < 5; i++) {
+        const petal = node("ellipse", {
+          cx: 0, cy: -5.2, rx: 3.7, ry: 6.0,
+          fill: color, transform: `rotate(${i * 72})`
+        });
+        holder.appendChild(petal);
+      }
+      holder.appendChild(node("circle", { r: 2.2, fill: "#fff8e9", opacity: 0.92 }));
+    } else if (type === "snow") {
+      holder.appendChild(node("circle", { r: 5.8, fill: color }));
+      holder.appendChild(node("circle", { cx: -1.6, cy: -1.8, r: 2.2, fill: "#ffffff", opacity: 0.8 }));
+    } else if (type === "stars") {
+      holder.appendChild(node("path", {
+        d: "M 0,-11 Q 2.3,-2.3 10,0 Q 2.3,2.3 0,11 Q -2.3,2.3 -10,0 Q -2.3,-2.3 0,-11 Z",
+        fill: color
+      }));
+      holder.appendChild(node("circle", { r: 1.7, fill: "#ffffff", opacity: 0.95 }));
+    } else if (type === "hearts") {
+      holder.appendChild(node("path", {
+        d: "M 0,9 C -2,7 -10,0 -10,-4 C -10,-11 -2,-12 0,-6 C 3,-12 10,-11 10,-4 C 10,0 3,7 0,9 Z",
+        fill: color
+      }));
+    } else if (type === "butterflies") {
+      holder.appendChild(node("path", {
+        d: "M 0,-1 C -4,-12 -13,-11 -12,-5 C -12,-1 -7,1 -2,1 C -11,2 -10,11 -6,10 C -2,10 -1,5 0,0 Z",
+        fill: color
+      }));
+      holder.appendChild(node("path", {
+        d: "M 0,-1 C 4,-12 13,-11 12,-5 C 12,-1 7,1 2,1 C 11,2 10,11 6,10 C 2,10 1,5 0,0 Z",
+        fill: color
+      }));
+      holder.appendChild(node("path", { d: "M 0,-6 Q 1,0 0,7", stroke: "#ffffff", "stroke-width": 1.3, "stroke-linecap": "round", fill: "none", opacity: 0.85 }));
+    } else if (type === "bubbles") {
+      holder.appendChild(node("circle", {
+        r: 8, fill: "#ffffff", "fill-opacity": 0.08,
+        stroke: color, "stroke-width": 1.3
+      }));
+      holder.appendChild(node("path", {
+        d: "M -4,-4 Q -2,-7 1,-6", fill: "none", stroke: "#ffffff",
+        "stroke-width": 1.8, "stroke-linecap": "round", opacity: 0.7
+      }));
+    }
+  }
+
+  function makeParticle(type, startAnywhere) {
+    const config = styles[type];
+    const size = random(...config.scale);
+    const p = {
+      x: random(-12, WIDTH + 12),
+      y: startAnywhere ? random(-20, HEIGHT + 20) : random(-150, -20),
+      speed: random(...config.speed),
+      sway: random(...config.sway),
+      frequency: random(0.28, 0.75),
+      phase: random(0, Math.PI * 2),
+      spin: random(-11, 11),
+      angle: random(-30, 30),
+      size,
+      baseOpacity: random(0.32, 0.66),
+      element: node("g")
+    };
+    const art = node("g", { opacity: 0.9 });
+    drawMotif(art, type, pick(config.colors));
+    // Duplicate the colored art in place with a subtle soft halo around its edges.
+    const halo = art.cloneNode(true);
+    halo.setAttribute("filter", "url(#memorySoftBlur)");
+    halo.setAttribute("opacity", "0.67");
+    p.element.append(halo, art);
+    layer.appendChild(p.element);
+    return p;
+  }
+
+  // Reusable filter is inserted in SVG defs once.
+  const defs = document.querySelector("#mainCanvas defs");
+  const blur = node("filter", {
+    id: "memorySoftBlur", x: "-65%", y: "-65%", width: "230%", height: "230%"
+  });
+  blur.appendChild(node("feGaussianBlur", { stdDeviation: "2.8" }));
+  defs.appendChild(blur);
+
+  function draw() {
+    const type = chooser.value;
+    for (const p of particles) {
+      const swayX = Math.sin(elapsed * p.frequency + p.phase) * p.sway;
+      const twinkle = type === "stars" ? 0.80 + 0.20 * Math.sin(elapsed * 2.8 + p.phase) : 1;
+      const fadeIn = Math.min(1, Math.max(0, (p.y + 25) / 100));
+      const fadeOut = Math.min(1, Math.max(0, (HEIGHT + 50 - p.y) / 125));
+      p.element.setAttribute("opacity", (p.baseOpacity * twinkle * fadeIn * fadeOut).toFixed(3));
+      p.element.setAttribute("transform", `translate(${(p.x + swayX).toFixed(2)} ${p.y.toFixed(2)}) rotate(${p.angle.toFixed(2)}) scale(${p.size.toFixed(3)})`);
+    }
+  }
+
+  function stop() {
+    if (frameId !== null) cancelAnimationFrame(frameId);
+    frameId = null;
+    lastTime = null;
+  }
+
+  function tick(timestamp) {
+    frameId = null;
+    if (document.hidden || reducedMotion.matches || chooser.value === "none") return;
+    const dt = lastTime === null ? 0 : Math.min(0.055, (timestamp - lastTime) / 1000);
+    lastTime = timestamp;
+    elapsed += dt;
+    for (const p of particles) {
+      p.y += p.speed * dt;
+      p.angle += p.spin * dt;
+      if (p.y > HEIGHT + 65) {
+        p.y = random(-140, -25);
+        p.x = random(-20, WIDTH + 20);
+      }
+    }
+    draw();
+    frameId = requestAnimationFrame(tick);
+  }
+
+  function resume() {
+    stop();
+    if (chooser.value !== "none" && !document.hidden && !reducedMotion.matches) {
+      frameId = requestAnimationFrame(tick);
+    }
+  }
+
+  function rebuild() {
+    stop();
+    particles = [];
+    layer.replaceChildren();
+    const type = chooser.value;
+    const level = Number(amount.value);
+    amountLabel.textContent = amountNames[level] || "Soft";
+    amount.disabled = type === "none";
+    if (type === "none" || !styles[type]) return;
+    const count = quantities[level] + (type === "snow" ? 8 : 0);
+    for (let i = 0; i < count; i++) particles.push(makeParticle(type, true));
+    draw();
+    resume();
+  }
+
+  chooser.addEventListener("change", rebuild);
+  amount.addEventListener("input", rebuild);
+  document.addEventListener("visibilitychange", resume);
+  if (typeof reducedMotion.addEventListener === "function") {
+    reducedMotion.addEventListener("change", () => {
+      if (reducedMotion.matches) draw();
+      resume();
+    });
+  }
+  rebuild();
 })();
 </script>
 </body>
