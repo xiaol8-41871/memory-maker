@@ -5,6 +5,123 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Memory Maker ♡</title>
 
+  /* ===== New Layout ===== */
+
+body {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(320px, 2fr);
+  align-items: start;
+  column-gap: 28px;
+  padding: 35px 28px 60px;
+}
+
+h1 {
+  grid-column: 1 / -1;
+  margin: 0 0 30px;
+}
+
+.canvas {
+  grid-column: 1;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  border-radius: 16px;
+}
+
+.controls {
+  grid-column: 2;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 26px;
+  border-radius: 22px;
+  text-align: left;
+}
+
+.controls h2 {
+  text-align: center;
+  font-size: 22px;
+}
+
+.upload {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  padding: 15px;
+  margin: 12px 0;
+  border: 1px solid #e1edfa;
+  border-radius: 14px;
+  background: #f8fbff;
+  font-size: 13px;
+  font-weight: 600;
+  color: #729bc5;
+}
+
+.upload input {
+  width: 100%;
+  font-size: 11px;
+  color: #777;
+}
+
+.upload input::file-selector-button {
+  border: 1px solid #b9d5ef;
+  border-radius: 8px;
+  padding: 9px 12px;
+  margin-right: 8px;
+  background: white;
+  color: #729bc5;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.editor {
+  margin-top: 22px;
+  padding: 20px;
+  text-align: center;
+}
+
+.editor h3 {
+  font-size: 15px;
+}
+
+.hint {
+  font-size: 12px;
+}
+
+#zoomSlider {
+  width: 100%;
+}
+
+@media (max-width: 850px) {
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 24px 16px 50px;
+  }
+
+  h1 {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .canvas {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .controls {
+    max-width: 600px;
+    margin: 25px auto 0;
+  }
+
+  .upload {
+    align-items: stretch;
+  }
+}
+  
 <style>
 * {
   box-sizing: border-box;
@@ -344,10 +461,10 @@ button:hover {
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 const names = {
-  musicPhoto: "ジャケット写真",
-  dayPhoto: "記念日カード",
-  leftPhoto: "チェキ左",
-  rightPhoto: "チェキ右"
+  musicPhoto: "Music Player",
+  dayPhoto: "D-Day",
+  leftPhoto: "Polaroid 01",
+  rightPhoto: "Polaroid 02"
 };
 
 const frames = {
@@ -691,7 +808,7 @@ function selectPhoto(id) {
     });
 
   document.getElementById("editingTitle")
-    .textContent = "編集中：" + names[id];
+    .textContent = "Editing: " + names[id];
 
   slider.value = photos[id].zoom;
   updateZoomLabel();
