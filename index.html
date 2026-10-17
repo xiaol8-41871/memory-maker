@@ -1577,7 +1577,7 @@ svg.addEventListener(
       spin: random(-11, 11),
       angle: random(-30, 30),
       size,
-      baseOpacity: random(0.32, 0.66),
+      baseOpacity: random(0.42, 0.78),
       element: node("g")
     };
     const art = node("g", { opacity: 0.9 });
@@ -1585,7 +1585,7 @@ svg.addEventListener(
     // Duplicate the colored art in place with a subtle soft halo around its edges.
     const halo = art.cloneNode(true);
     halo.setAttribute("filter", "url(#memorySoftBlur)");
-    halo.setAttribute("opacity", "0.67");
+    halo.setAttribute("opacity", "0.72");
     p.element.append(halo, art);
     layer.appendChild(p.element);
     return p;
@@ -1667,6 +1667,54 @@ svg.addEventListener(
     });
   }
   rebuild();
+})();
+</script>
+
+<script>
+/* ===== SUBTLE TRANSLUCENT WHITE PANELS =====
+   Adapt the existing PNG layers at runtime, without changing the PNG files,
+   transparent photo windows, black icons or frame outlines.
+   The original PNGs remain untouched for photo-mask generation. */
+(function () {
+  const OVERLAYS = ["images/musicplayer.PNG", "images/d_day.PNG"];
+  const WHITE_OPACITY = 0.87;
+
+  async function softenPanel(path) {
+    const target = Array.from(document.querySelectorAll("#mainCanvas image.frame"))
+      .find(image => image.getAttribute("href") === path);
+    if (!target) return;
+
+    try {
+      const source = new Image();
+      source.src = path;
+      await source.decode();
+
+      const canvas = document.createElement("canvas");
+      canvas.width = source.naturalWidth;
+      canvas.height = source.naturalHeight;
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      ctx.drawImage(source, 0, 0);
+      const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = pixels.data;
+
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i + 3] === 0) continue;
+        // Bright whites become translucent; dark strokes remain fully opaque.
+        // Smooth fade between them preserves antialiased frame borders.
+        const lightness = Math.min(data[i], data[i + 1], data[i + 2]);
+        const whiteness = Math.max(0, Math.min(1, (lightness - 165) / 85));
+        data[i + 3] = Math.round(data[i + 3] * (1 - (1 - WHITE_OPACITY) * whiteness));
+      }
+
+      ctx.putImageData(pixels, 0, 0);
+      target.setAttribute("href", canvas.toDataURL("image/png"));
+    } catch (error) {
+      // Keep the unmodified original frame if processing is unsupported.
+      console.warn("Unable to soften frame:", path, error);
+    }
+  }
+
+  OVERLAYS.forEach(softenPanel);
 })();
 </script>
 </body>
