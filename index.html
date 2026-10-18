@@ -507,11 +507,13 @@ h1 {
   cursor: pointer;
   transition: background .2s, transform .2s;
 }
-.save-memory-button:hover { background: #73a4d1; }
+.save-png-secondary { background: #f4f9ff; color: #6999c7; }
+.save-png-secondary:hover { background: #e6f2fe; }
+.save-memory-button:hover:not(.save-png-secondary) { background: #73a4d1; }
 .save-memory-button:active { transform: scale(.99); }
 .save-memory-button:disabled { cursor: progress; opacity: .72; }
 .save-memory-button:focus-visible,
-#openSavedPng:focus-visible { outline: 3px solid #6c9dc7; outline-offset: 3px; }
+#openSavedPng:focus-visible, #openSavedGif:focus-visible { outline: 3px solid #6c9dc7; outline-offset: 3px; }
 .save-memory-note {
   margin: 0;
   text-align: center;
@@ -519,14 +521,14 @@ h1 {
   font-size: 11px;
   line-height: 1.6;
 }
-#openSavedPng {
+#openSavedPng, #openSavedGif {
   color: #6794c1;
   font-weight: 700;
   font-size: 12px;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
-#openSavedPng[hidden] { display: none; }
+#openSavedPng[hidden], #openSavedGif[hidden] { display: none; }
 
 </style>
 </head>
@@ -774,10 +776,12 @@ h1 {
     </div>
 
     <div class="save-memory-panel">
-      <button type="button" id="saveMemoryPng" class="save-memory-button">♡ Save PNG</button>
+      <button type="button" id="saveMemoryGif" class="save-memory-button">✧ Save Animated GIF</button>
+      <button type="button" id="saveMemoryPng" class="save-memory-button save-png-secondary">♡ Save PNG (Still)</button>
       <p class="save-memory-note" id="saveMemoryStatus" role="status" aria-live="polite">
-        High quality · 2048 × 1430 · Still image
+        GIF preserves falling effects · PNG is a still image
       </p>
+      <a href="#" id="openSavedGif" target="_blank" rel="noopener" hidden>Open animated GIF ♡</a>
       <a href="#" id="openSavedPng" target="_blank" rel="noopener" hidden>Open saved PNG ♡</a>
     </div>
 
@@ -2074,6 +2078,49 @@ svg.addEventListener(
     });
   }
   rebuild();
+
+  // Freeze motif settings, geometry and elapsed time once at export start.
+  // The live animation continues in the editor, but it cannot change the
+  // positions in frames being encoded, even if GIF creation takes a while.
+  window.memoryCreateEffectSnapshot = function () {
+    const selected = chooser.value;
+    if (selected === "none" || !particles.length) return () => null;
+    const startTime = elapsed;
+    const frozen = particles.map(p => ({
+      x: p.x, y: p.y, speed: p.speed, sway: p.sway,
+      frequency: p.frequency, phase: p.phase, spin: p.spin,
+      angle: p.angle, size: p.size, baseOpacity: p.baseOpacity,
+      element: p.element.cloneNode(true)
+    }));
+    return function (seconds) {
+      const copy = node("svg", {
+        xmlns: NS, width: WIDTH, height: HEIGHT,
+        viewBox: `0 0 ${WIDTH} ${HEIGHT}`
+      });
+      const filters = node("defs");
+      filters.appendChild(blur.cloneNode(true));
+      copy.appendChild(filters);
+      const frozenLayer = node("g");
+      const time = startTime + seconds;
+      for (const p of frozen) {
+        const particle = p.element.cloneNode(true);
+        // Travel downward, wrapping naturally outside the artwork.
+        const cycle = HEIGHT + 205;
+        const y = ((p.y + 140 + p.speed * seconds) % cycle + cycle) % cycle - 140;
+        const x = p.x + Math.sin(time * p.frequency + p.phase) * p.sway;
+        const angle = p.angle + p.spin * seconds;
+        const twinkle = ["stars", "fairydust", "moonstars"].includes(selected)
+          ? 0.80 + 0.20 * Math.sin(time * 2.8 + p.phase) : 1;
+        const fadeIn = Math.min(1, Math.max(0, (y + 25) / 100));
+        const fadeOut = Math.min(1, Math.max(0, (HEIGHT + 50 - y) / 125));
+        particle.setAttribute("opacity", (p.baseOpacity * twinkle * fadeIn * fadeOut).toFixed(3));
+        particle.setAttribute("transform", `translate(${x.toFixed(2)} ${y.toFixed(2)}) rotate(${angle.toFixed(2)}) scale(${p.size.toFixed(3)})`);
+        frozenLayer.appendChild(particle);
+      }
+      copy.appendChild(frozenLayer);
+      return new XMLSerializer().serializeToString(copy);
+    };
+  };
 })();
 </script>
 
@@ -2404,7 +2451,7 @@ svg.addEventListener(
     ctx.clip();
   }
 
-  async function renderPNG() {
+  async function renderPNG(withoutEffects = false) {
     if (window.memoryMasksReady) await window.memoryMasksReady;
     if (document.fonts && document.fonts.ready) {
       // Don't freeze the save button if a font CDN is slow or blocked.
@@ -2422,6 +2469,7 @@ svg.addEventListener(
     // Blue dashed selection marks are for editing only.
     const hitAreas = copy.querySelector("#hitAreas");
     if (hitAreas) hitAreas.remove();
+    if (withoutEffects) copy.querySelector("#effectsLayer")?.remove();
     paintTextIntoExport(live, copy);
     await embedAllImages(copy);
 
@@ -2453,6 +2501,10 @@ svg.addEventListener(
     }
   }
 
+  // GIF export uses the same high-fidelity drawing, without the particles,
+  // then animates only their transparent layer above this static image.
+  window.memoryExportStaticPNG = () => renderPNG(true);
+
   button.addEventListener("click", async () => {
     if (button.disabled) return;
     button.disabled = true;
@@ -2483,6 +2535,319 @@ svg.addEventListener(
   });
   window.addEventListener("pagehide", () => {
     if (lastExportURL) URL.revokeObjectURL(lastExportURL);
+  });
+})();
+</script>
+
+<script>
+/* ===== SAVE AN ANIMATED, LOOPING GIF (SELF-CONTAINED, NO UPLOADS) =====
+   Build the static Memory once, then composite a time-sampled SVG particle
+   overlay for every frame. Encode GIF89a in browser; no GIF library, worker,
+   server, external images or MP4 conversion required.
+*/
+(function () {
+  const button = document.getElementById("saveMemoryGif");
+  const pngButton = document.getElementById("saveMemoryPng");
+  const status = document.getElementById("saveMemoryStatus");
+  const openGif = document.getElementById("openSavedGif");
+  const WIDTH = 720;
+  const HEIGHT = Math.round(WIDTH * 1430 / 2048);
+  const FPS = 10;
+  const DURATION = 4; // Seconds. GIF loops automatically.
+  const FRAMES = FPS * DURATION;
+  let previousURL = null;
+  let isSaving = false;
+
+  function pauseForPaint() {
+    return new Promise(resolve => setTimeout(resolve, 0));
+  }
+
+  function blobURL(blob) { return URL.createObjectURL(blob); }
+  function imageFromURL(url) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error("Couldn't draw the animation."));
+      img.src = url;
+    });
+  }
+
+  // Median-cut quantizer from a sampled photo, with a small reserve for
+  // pale motifs, text and frame lines. A single global palette prevents
+  // colors from changing between frames.
+  function buildPalette(pixels) {
+    const counts = new Uint32Array(32768);
+    const sumR = new Float64Array(32768);
+    const sumG = new Float64Array(32768);
+    const sumB = new Float64Array(32768);
+    const stride = 4 * 3;
+    for (let i = 0; i < pixels.length; i += stride) {
+      const r = pixels[i], g = pixels[i + 1], b = pixels[i + 2];
+      const k = (r >> 3) * 1024 + (g >> 3) * 32 + (b >> 3);
+      counts[k]++;
+      sumR[k] += r; sumG[k] += g; sumB[k] += b;
+    }
+    const bins = [];
+    for (let k = 0; k < 32768; k++) {
+      if (!counts[k]) continue;
+      bins.push({
+        r: sumR[k] / counts[k], g: sumG[k] / counts[k],
+        b: sumB[k] / counts[k], count: counts[k]
+      });
+    }
+    if (!bins.length) bins.push({r: 255,g:255,b:255,count:1});
+    const reserved = [
+      [255,255,255],[0,0,0],[234,244,255],[201,228,248],
+      [147,188,228],[114,155,197],[255,228,239],[255,248,222],
+      [229,241,255],[232,222,255],[255,217,234],[206,222,234],
+      [160,160,160],[80,80,80],[244,229,250],[224,247,255]
+    ];
+    const maxBoxes = 256 - reserved.length;
+    function analyze(box) {
+      let minR=256,minG=256,minB=256,maxR=0,maxG=0,maxB=0,weight=0;
+      for (const b of box.items) {
+        if(b.r<minR) minR=b.r; if(b.r>maxR) maxR=b.r;
+        if(b.g<minG) minG=b.g; if(b.g>maxG) maxG=b.g;
+        if(b.b<minB) minB=b.b; if(b.b>maxB) maxB=b.b;
+        weight+=b.count;
+      }
+      const ranges=[maxR-minR,maxG-minG,maxB-minB];
+      box.channel = ranges.indexOf(Math.max(...ranges));
+      box.weight = weight;
+      box.score = Math.max(...ranges)*Math.sqrt(weight);
+    }
+    const boxes = [{items:bins}];
+    analyze(boxes[0]);
+    while(boxes.length < maxBoxes) {
+      let pick=-1,score=-1;
+      for(let i=0;i<boxes.length;i++) {
+        const b=boxes[i];
+        if(b.items.length>1 && b.score>score) { score=b.score; pick=i; }
+      }
+      if (pick<0) break;
+      const box=boxes[pick], channel=["r","g","b"][box.channel];
+      box.items.sort((a,b)=>a[channel]-b[channel]);
+      let running=0, split=0;
+      for(let i=0;i<box.items.length-1;i++) {
+        running+=box.items[i].count;
+        if(running>=box.weight/2) {split=i+1;break;}
+      }
+      if(!split) split=Math.floor(box.items.length/2);
+      const left={items:box.items.slice(0,split)};
+      const right={items:box.items.slice(split)};
+      analyze(left);analyze(right);
+      boxes[pick]=left;boxes.push(right);
+    }
+    const palette = reserved.slice();
+    for(const box of boxes) {
+      let r=0,g=0,b=0,total=0;
+      for(const item of box.items) {
+        total+=item.count;
+        r+=item.r*item.count;g+=item.g*item.count;b+=item.b*item.count;
+      }
+      palette.push([Math.round(r/total),Math.round(g/total),Math.round(b/total)]);
+    }
+    while(palette.length<256) palette.push(palette[palette.length-1]);
+    return palette.slice(0,256);
+  }
+
+  // Lookup each 5-bit RGB color only once; reuse for every GIF frame.
+  function makeLookup(palette) {
+    const lookup=new Uint8Array(32768);
+    for(let key=0;key<32768;key++) {
+      const r=((key>>10)&31)*8+4;
+      const g=((key>>5)&31)*8+4;
+      const b=(key&31)*8+4;
+      let best=0,bestDist=Infinity;
+      for(let i=0;i<palette.length;i++) {
+        const p=palette[i];
+        const dr=r-p[0],dg=g-p[1],db=b-p[2];
+        const dist=3*dr*dr+5*dg*dg+2*db*db;
+        if(dist<bestDist) {bestDist=dist;best=i;}
+      }
+      lookup[key]=best;
+    }
+    return lookup;
+  }
+
+  function makeIndices(rgba, width, height, lookup) {
+    const indices = new Uint8Array(width*height);
+    // Ordered micro-dithering: stable over time, unlike random noise.
+    const bayer=[0, 8, 2,10,12, 4,14, 6, 3,11, 1, 9,15, 7,13, 5];
+    let offset=0;
+    for(let y=0;y<height;y++) {
+      const dy=(y&3)*4;
+      for(let x=0;x<width;x++) {
+        const adjust=(bayer[dy+(x&3)]-7.5)*.65;
+        const r=Math.max(0,Math.min(255,rgba[offset]+adjust))>>3;
+        const g=Math.max(0,Math.min(255,rgba[offset+1]+adjust))>>3;
+        const b=Math.max(0,Math.min(255,rgba[offset+2]+adjust))>>3;
+        indices[y*width+x]=lookup[(r<<10)|(g<<5)|b];
+        offset+=4;
+      }
+    }
+    return indices;
+  }
+
+  // GIF LZW writes bit-packed codes, resetting at the 4096-code limit.
+  function lzwEncode(indices) {
+    const clear=256,end=257;
+    let size=9,next=258,table=new Map();
+    const output=[];
+    let bits=0,buffer=0;
+    function code(value) {
+      buffer |= value << bits;
+      bits += size;
+      while(bits>=8) {
+        output.push(buffer&255);
+        buffer>>>=8;
+        bits-=8;
+      }
+    }
+    code(clear);
+    let prefix=indices[0];
+    for(let i=1;i<indices.length;i++) {
+      const current=indices[i];
+      const key=prefix*256+current;
+      const found=table.get(key);
+      if(found!==undefined) { prefix=found;continue; }
+      code(prefix);
+      if(next<4096) {
+        table.set(key,next++);
+        // Decoder is one code behind the encoder at size changes.
+        if(next > (1<<size) && size<12) size++;
+      } else {
+        code(clear);
+        table=new Map();next=258;size=9;
+      }
+      prefix=current;
+    }
+    code(prefix);code(end);
+    if(bits>0) output.push(buffer&255);
+    return Uint8Array.from(output);
+  }
+
+  class GifWriter {
+    constructor(width,height,palette) {
+      this.parts=[];
+      this.byteCount=0;
+      this.width=width; this.height=height;
+      this.push(new TextEncoder().encode("GIF89a"));
+      this.push(Uint8Array.of(width&255,width>>8,height&255,height>>8,0xF7,0,0));
+      const rgb=new Uint8Array(768);
+      palette.forEach((c,i)=>rgb.set(c,i*3));
+      this.push(rgb);
+      // Netscape loop extension: zero means infinite loop.
+      this.push(Uint8Array.of(0x21,0xFF,0x0B,78,69,84,83,67,65,80,69,50,46,48,3,1,0,0,0));
+    }
+    push(bytes) {this.parts.push(bytes);this.byteCount+=bytes.length;}
+    add(indices,delayCentiseconds) {
+      const w=this.width,h=this.height;
+      // Restore a complete image on every frame; no ghost trails.
+      this.push(Uint8Array.of(0x21,0xF9,4,0x00,delayCentiseconds,0,0,0));
+      this.push(Uint8Array.of(0x2C,0,0,0,0,w&255,w>>8,h&255,h>>8,0));
+      this.push(Uint8Array.of(8));
+      const packed=lzwEncode(indices);
+      for(let i=0;i<packed.length;i+=255) {
+        const portion=packed.subarray(i,i+255);
+        this.push(Uint8Array.of(portion.length));
+        this.push(portion);
+      }
+      this.push(Uint8Array.of(0));
+    }
+    finish() {
+      this.push(Uint8Array.of(0x3B));
+      return new Blob(this.parts,{type:"image/gif"});
+    }
+  }
+
+  function roundedClip(ctx,w,h) {
+    const r=w*33/2048;
+    ctx.beginPath();
+    ctx.moveTo(r,0);ctx.lineTo(w-r,0);ctx.quadraticCurveTo(w,0,w,r);
+    ctx.lineTo(w,h-r);ctx.quadraticCurveTo(w,h,w-r,h);
+    ctx.lineTo(r,h);ctx.quadraticCurveTo(0,h,0,h-r);
+    ctx.lineTo(0,r);ctx.quadraticCurveTo(0,0,r,0);
+    ctx.closePath();ctx.clip();
+  }
+
+  async function drawEffectFrame(ctx, time, renderEffects) {
+    const markup=renderEffects?.(time);
+    if(!markup) return;
+    const object=blobURL(new Blob([markup],{type:"image/svg+xml;charset=utf-8"}));
+    try {
+      const art=await imageFromURL(object);
+      ctx.save();roundedClip(ctx,WIDTH,HEIGHT);
+      ctx.drawImage(art,0,0,WIDTH,HEIGHT);
+      ctx.restore();
+    } finally {URL.revokeObjectURL(object);}
+  }
+
+  async function makeGif() {
+    if (typeof window.memoryExportStaticPNG !== "function") {
+      throw new Error("Image export isn't ready yet.");
+    }
+    status.textContent="Preparing your animated Memory…";
+    const renderEffects=window.memoryCreateEffectSnapshot?.();
+    const staticPNG=await window.memoryExportStaticPNG();
+    const imageURL=blobURL(staticPNG);
+    let staticImage;
+    try {staticImage=await imageFromURL(imageURL);}
+    finally {URL.revokeObjectURL(imageURL);}
+    const frame=document.createElement("canvas");
+    frame.width=WIDTH;frame.height=HEIGHT;
+    const ctx=frame.getContext("2d",{alpha:false,willReadFrequently:true});
+    if(!ctx) throw new Error("Animated GIF isn't supported by this browser.");
+    ctx.fillStyle="#eaf4ff";
+    ctx.fillRect(0,0,WIDTH,HEIGHT);
+    ctx.drawImage(staticImage,0,0,WIDTH,HEIGHT);
+    const base=ctx.getImageData(0,0,WIDTH,HEIGHT);
+    status.textContent="Preparing GIF colors…";
+    await pauseForPaint();
+    const palette=buildPalette(base.data);
+    const lookup=makeLookup(palette);
+    const writer=new GifWriter(WIDTH,HEIGHT,palette);
+    for(let i=0;i<FRAMES;i++) {
+      ctx.putImageData(base,0,0);
+      await drawEffectFrame(ctx,i/FPS,renderEffects);
+      const rgba=ctx.getImageData(0,0,WIDTH,HEIGHT).data;
+      writer.add(makeIndices(rgba,WIDTH,HEIGHT,lookup),Math.round(100/FPS));
+      if(i%2===0 || i===FRAMES-1) {
+        status.textContent=`Creating animated GIF… ${i+1} / ${FRAMES}`;
+        await pauseForPaint();
+      }
+    }
+    return writer.finish();
+  }
+
+  button.addEventListener("click",async()=>{
+    if(isSaving) return;
+    isSaving=true;button.disabled=true;pngButton.disabled=true;
+    button.textContent="Making GIF… ✧";
+    try {
+      const gif=await makeGif();
+      if(previousURL) URL.revokeObjectURL(previousURL);
+      previousURL=URL.createObjectURL(gif);
+      const link=document.createElement("a");
+      const now=new Date();
+      const stamp=[now.getFullYear(),String(now.getMonth()+1).padStart(2,"0"),String(now.getDate()).padStart(2,"0")].join("-");
+      link.href=previousURL;
+      link.download=`MemoryMaker_${stamp}.gif`;
+      document.body.appendChild(link);link.click();link.remove();
+      openGif.href=previousURL;openGif.hidden=false;
+      const mb=(gif.size/1024/1024).toFixed(1);
+      status.textContent=`Saved! Animated GIF · ${WIDTH} × ${HEIGHT} · ${DURATION}s loop · ${mb} MB ♡`;
+    } catch(error) {
+      console.error("Memory Maker GIF export failed:",error);
+      status.textContent="Couldn't save the GIF. Please try again ♡";
+    } finally {
+      button.disabled=false;pngButton.disabled=false;
+      button.textContent="✧ Save Animated GIF";
+      isSaving=false;
+    }
+  });
+  window.addEventListener("pagehide",()=>{
+    if(previousURL) URL.revokeObjectURL(previousURL);
   });
 })();
 </script>
