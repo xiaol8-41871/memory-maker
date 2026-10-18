@@ -484,6 +484,50 @@ h1 {
   .decor-configuration { padding: 12px; }
 }
 
+
+/* PNG SAVE — outside the artwork, never included in the image */
+.save-memory-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 15px;
+  padding: 0 8px;
+}
+.save-memory-button {
+  width: min(100%, 310px);
+  min-height: 48px;
+  padding: 12px 22px;
+  border: 1px solid #a9cbed;
+  border-radius: 14px;
+  background: #8fbbe5;
+  color: #fff;
+  font: 700 14px Arial, sans-serif;
+  letter-spacing: .4px;
+  cursor: pointer;
+  transition: background .2s, transform .2s;
+}
+.save-memory-button:hover { background: #73a4d1; }
+.save-memory-button:active { transform: scale(.99); }
+.save-memory-button:disabled { cursor: progress; opacity: .72; }
+.save-memory-button:focus-visible,
+#openSavedPng:focus-visible { outline: 3px solid #6c9dc7; outline-offset: 3px; }
+.save-memory-note {
+  margin: 0;
+  text-align: center;
+  color: #819cba;
+  font-size: 11px;
+  line-height: 1.6;
+}
+#openSavedPng {
+  color: #6794c1;
+  font-weight: 700;
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+#openSavedPng[hidden] { display: none; }
+
 </style>
 </head>
 
@@ -727,6 +771,14 @@ h1 {
 
       </svg>
 
+    </div>
+
+    <div class="save-memory-panel">
+      <button type="button" id="saveMemoryPng" class="save-memory-button">♡ Save PNG</button>
+      <p class="save-memory-note" id="saveMemoryStatus" role="status" aria-live="polite">
+        High quality · 2048 × 1430 · Still image
+      </p>
+      <a href="#" id="openSavedPng" target="_blank" rel="noopener" hidden>Open saved PNG ♡</a>
     </div>
 
   </section>
@@ -1302,7 +1354,7 @@ async function initializeMasks() {
 
 }
 
-initializeMasks();
+window.memoryMasksReady = initializeMasks();
 
 
 // ======================================
@@ -2213,5 +2265,227 @@ svg.addEventListener(
   }
 })();
 </script>
+<script>
+/* ===== SAVE COMPLETE MEMORY AS A HIGH-RESOLUTION PNG =====
+   Export from a snapshot of the finished SVG instead of taking a screenshot.
+   SVG image sources (including uploaded photos and generated masks) are
+   embedded in the temporary export COPY, never replaced in the live preview.
+   Text is rendered into the copy with the browser's already-loaded fonts,
+   so handwriting and Japanese lettering export reliably too.
+   Effects are saved at their current position in a still PNG.
+*/
+(function () {
+  const NS = "http://www.w3.org/2000/svg";
+  const W = 2048;
+  const H = 1430;
+  const button = document.getElementById("saveMemoryPng");
+  const status = document.getElementById("saveMemoryStatus");
+  const openLink = document.getElementById("openSavedPng");
+  let lastExportURL = null;
+
+  function blobToDataURL(blob) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => reject(new Error("Unable to read an image."));
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  function loadImage(url) {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error("Unable to render the finished artwork."));
+      image.src = url;
+    });
+  }
+
+  // SVG <text> is converted to tiny transparent images using the same fonts
+  // the user sees in the editor. This avoids losing cursive fonts in the
+  // browser's isolated SVG-to-image rendering environment.
+  function paintTextIntoExport(liveSVG, copySVG) {
+    const originals = Array.from(liveSVG.querySelectorAll("text"));
+    const copies = Array.from(copySVG.querySelectorAll("text"));
+    originals.forEach((original, index) => {
+      const copy = copies[index];
+      if (!copy) return;
+      const text = original.textContent || "";
+      if (!text.trim()) {
+        copy.remove();
+        return;
+      }
+      const bounds = original.getBBox();
+      if (!(bounds.width > 0 && bounds.height > 0)) {
+        copy.remove();
+        return;
+      }
+      const style = getComputedStyle(original);
+      const fontSize = parseFloat(style.fontSize) || parseFloat(original.getAttribute("font-size")) || 28;
+      const fontFamily = style.fontFamily || "Arial, sans-serif";
+      const fontWeight = style.fontWeight || "400";
+      const fontStyle = style.fontStyle || "normal";
+      const pxFont = `${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`;
+      const pad = Math.max(5, Math.ceil(fontSize * .38));
+      const width = bounds.width + pad * 2;
+      const height = bounds.height + pad * 2;
+      const scale = 2;
+      const sheet = document.createElement("canvas");
+      sheet.width = Math.max(1, Math.ceil(width * scale));
+      sheet.height = Math.max(1, Math.ceil(height * scale));
+      const ctx = sheet.getContext("2d");
+      if (!ctx) throw new Error("Canvas is unavailable.");
+      ctx.font = pxFont;
+      ctx.fillStyle = original.getAttribute("fill") || style.fill || "#202020";
+      ctx.textBaseline = "alphabetic";
+      const anchor = original.getAttribute("text-anchor") || style.textAnchor || "start";
+      ctx.textAlign = anchor === "middle" ? "center" : anchor === "end" ? "right" : "left";
+
+      // Honor SVG textLength / letter-fitting without clipping any glyphs.
+      const measured = ctx.measureText(text).width;
+      const horizontalFit = measured > 0 ? bounds.width / measured : 1;
+      const textX = Number(original.getAttribute("x")) || 0;
+      const textY = Number(original.getAttribute("y")) || 0;
+      const localX = textX - bounds.x + pad;
+      const localY = textY - bounds.y + pad;
+      ctx.setTransform(scale, 0, 0, scale, 0, 0);
+      ctx.translate(localX, localY);
+      ctx.scale(horizontalFit, 1);
+      ctx.fillText(text, 0, 0);
+
+      const replacement = document.createElementNS(NS, "image");
+      replacement.setAttribute("x", String(bounds.x - pad));
+      replacement.setAttribute("y", String(bounds.y - pad));
+      replacement.setAttribute("width", String(width));
+      replacement.setAttribute("height", String(height));
+      replacement.setAttribute("preserveAspectRatio", "none");
+      replacement.setAttribute("href", sheet.toDataURL("image/png"));
+      for (const name of ["opacity", "transform", "filter"]) {
+        if (original.hasAttribute(name)) {
+          replacement.setAttribute(name, original.getAttribute(name));
+        }
+      }
+      copy.replaceWith(replacement);
+    });
+  }
+
+  async function embedAllImages(svgCopy) {
+    const cache = new Map();
+    const images = Array.from(svgCopy.querySelectorAll("image"));
+    await Promise.all(images.map(async (image) => {
+      const href = image.getAttribute("href") || image.getAttribute("xlink:href");
+      if (!href || href.startsWith("data:")) return;
+      let job = cache.get(href);
+      if (!job) {
+        job = (async () => {
+          const response = await fetch(href);
+          if (!response.ok) throw new Error("Unable to load an artwork image.");
+          return blobToDataURL(await response.blob());
+        })();
+        cache.set(href, job);
+      }
+      image.setAttribute("href", await job);
+      image.removeAttribute("xlink:href");
+    }));
+  }
+
+  function drawRoundedClip(ctx, width, height, radius) {
+    ctx.beginPath();
+    ctx.moveTo(radius, 0);
+    ctx.lineTo(width - radius, 0);
+    ctx.quadraticCurveTo(width, 0, width, radius);
+    ctx.lineTo(width, height - radius);
+    ctx.quadraticCurveTo(width, height, width - radius, height);
+    ctx.lineTo(radius, height);
+    ctx.quadraticCurveTo(0, height, 0, height - radius);
+    ctx.lineTo(0, radius);
+    ctx.quadraticCurveTo(0, 0, radius, 0);
+    ctx.closePath();
+    ctx.clip();
+  }
+
+  async function renderPNG() {
+    if (window.memoryMasksReady) await window.memoryMasksReady;
+    if (document.fonts && document.fonts.ready) {
+      // Don't freeze the save button if a font CDN is slow or blocked.
+      await Promise.race([
+        document.fonts.ready,
+        new Promise(resolve => setTimeout(resolve, 3000))
+      ]);
+    }
+    const live = document.getElementById("mainCanvas");
+    const copy = live.cloneNode(true);
+    copy.setAttribute("xmlns", NS);
+    copy.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
+    copy.setAttribute("width", String(W));
+    copy.setAttribute("height", String(H));
+    // Blue dashed selection marks are for editing only.
+    const hitAreas = copy.querySelector("#hitAreas");
+    if (hitAreas) hitAreas.remove();
+    paintTextIntoExport(live, copy);
+    await embedAllImages(copy);
+
+    const markup = new XMLSerializer().serializeToString(copy);
+    const svgUrl = URL.createObjectURL(new Blob([markup], { type: "image/svg+xml;charset=utf-8" }));
+    try {
+      const artwork = await loadImage(svgUrl);
+      const output = document.createElement("canvas");
+      output.width = W;
+      output.height = H;
+      const ctx = output.getContext("2d", { alpha: true });
+      if (!ctx) throw new Error("PNG rendering is unavailable.");
+      ctx.save();
+      // Match the light-blue default and rounded corners of the preview.
+      drawRoundedClip(ctx, W, H, 33);
+      ctx.fillStyle = "#c9e4f8";
+      ctx.fillRect(0, 0, W, H);
+      ctx.drawImage(artwork, 0, 0, W, H);
+      ctx.restore();
+      const png = await new Promise((resolve, reject) => {
+        output.toBlob(blob => {
+          if (blob) resolve(blob);
+          else reject(new Error("Unable to create a PNG."));
+        }, "image/png");
+      });
+      return png;
+    } finally {
+      URL.revokeObjectURL(svgUrl);
+    }
+  }
+
+  button.addEventListener("click", async () => {
+    if (button.disabled) return;
+    button.disabled = true;
+    button.textContent = "Saving… ♡";
+    status.textContent = "Preparing your Memory…";
+    try {
+      const png = await renderPNG();
+      if (lastExportURL) URL.revokeObjectURL(lastExportURL);
+      lastExportURL = URL.createObjectURL(png);
+      const a = document.createElement("a");
+      a.href = lastExportURL;
+      const now = new Date();
+      const dateStamp = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, "0"), String(now.getDate()).padStart(2, "0")].join("-");
+      a.download = `MemoryMaker_${dateStamp}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      openLink.href = lastExportURL;
+      openLink.hidden = false;
+      status.textContent = "Saved! PNG · 2048 × 1430 · Still image";
+    } catch (error) {
+      console.error("Memory Maker save failed:", error);
+      status.textContent = "Couldn't save the image. Please try again ♡";
+    } finally {
+      button.textContent = "♡ Save PNG";
+      button.disabled = false;
+    }
+  });
+  window.addEventListener("pagehide", () => {
+    if (lastExportURL) URL.revokeObjectURL(lastExportURL);
+  });
+})();
+</script>
+
 </body>
 </html>
