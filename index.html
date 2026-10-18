@@ -716,10 +716,10 @@ h1 {
 
         <!-- Optional canvas lettering; deliberately empty until the user types. -->
         <g id="decorativeLayer" class="canvas-caption" aria-label="Decorative memory text">
-          <text id="topLeftDecorPreview" x="100" y="170" text-anchor="start"
+          <text id="topLeftDecorPreview" x="52" y="126" text-anchor="start"
                 font-size="54" fill="#729bc5"></text>
-          <text id="bottomRightDecorPreview" x="1635" y="1210" text-anchor="middle"
-                font-size="118" fill="#729bc5" transform="rotate(-13 1635 1210)"></text>
+          <text id="bottomRightDecorPreview" x="1720" y="1300" text-anchor="middle"
+                font-size="118" fill="#729bc5" transform="rotate(-13 1720 1300)"></text>
         </g>
 
         <!-- Soft falling effects are always above the artwork, never capture clicks. -->
@@ -2159,8 +2159,8 @@ svg.addEventListener(
   };
 
   const configurations = [
-    { key: "topLeftDecor", preview: "topLeftDecorPreview", x: 100, y: 170, defaultAngle: 0, maxWidth: 900, minFont: 16 },
-    { key: "bottomRightDecor", preview: "bottomRightDecorPreview", x: 1635, y: 1210, defaultAngle: -13, maxWidth: 730, minFont: 29 },
+    { key: "topLeftDecor", preview: "topLeftDecorPreview", x: 52, y: 126, defaultAngle: 0, maxWidth: 900, minFont: 16 },
+    { key: "bottomRightDecor", preview: "bottomRightDecorPreview", x: 1720, y: 1300, defaultAngle: -13, maxWidth: 730, minFont: 29 },
     { key: "polaroidLeft", preview: "polaroidLeftCaptionPreview", x: 1085, y: 1140, defaultAngle: 0, maxWidth: 335, minFont: 15 },
     { key: "polaroidRight", preview: "polaroidRightCaptionPreview", x: 1500, y: 1178, defaultAngle: 0, maxWidth: 335, minFont: 15 }
   ];
