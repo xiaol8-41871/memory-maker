@@ -779,7 +779,7 @@ h1 {
       <button type="button" id="saveMemoryGif" class="save-memory-button">✧ Save Animated GIF</button>
       <button type="button" id="saveMemoryPng" class="save-memory-button save-png-secondary">♡ Save PNG (Still)</button>
       <p class="save-memory-note" id="saveMemoryStatus" role="status" aria-live="polite">
-        GIF preserves falling effects · PNG is a still image
+        GIF preserves falling effects · 1080px high-quality GIF · PNG is still
       </p>
       <a href="#" id="openSavedGif" target="_blank" rel="noopener" hidden>Open animated GIF ♡</a>
       <a href="#" id="openSavedPng" target="_blank" rel="noopener" hidden>Open saved PNG ♡</a>
@@ -2550,9 +2550,9 @@ svg.addEventListener(
   const pngButton = document.getElementById("saveMemoryPng");
   const status = document.getElementById("saveMemoryStatus");
   const openGif = document.getElementById("openSavedGif");
-  const WIDTH = 720;
+  const WIDTH = 1080; // High-resolution GIF, independent of screen size
   const HEIGHT = Math.round(WIDTH * 1430 / 2048);
-  const FPS = 10;
+  const FPS = 8; // Fewer frames keeps high-resolution GIF practical on phones
   const DURATION = 4; // Seconds. GIF loops automatically.
   const FRAMES = FPS * DURATION;
   let previousURL = null;
@@ -2778,6 +2778,7 @@ svg.addEventListener(
     try {
       const art=await imageFromURL(object);
       ctx.save();roundedClip(ctx,WIDTH,HEIGHT);
+      ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality="high";
       ctx.drawImage(art,0,0,WIDTH,HEIGHT);
       ctx.restore();
     } finally {URL.revokeObjectURL(object);}
@@ -2797,6 +2798,7 @@ svg.addEventListener(
     const frame=document.createElement("canvas");
     frame.width=WIDTH;frame.height=HEIGHT;
     const ctx=frame.getContext("2d",{alpha:false,willReadFrequently:true});
+    if(ctx) { ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality="high"; }
     if(!ctx) throw new Error("Animated GIF isn't supported by this browser.");
     ctx.fillStyle="#eaf4ff";
     ctx.fillRect(0,0,WIDTH,HEIGHT);
