@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Memory Maker ♡</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600&family=Great+Vibes&display=swap" rel="stylesheet">
 
 <style>
 * {
@@ -431,6 +434,56 @@ h1 {
 .color-match input { width: 16px; height: 16px; accent-color: #87b4df; cursor: pointer; }
 #controlsColors[hidden] { display: none !important; }
 @media (max-width: 420px) { .color-palette { gap: 10px; } }
+
+/* DECORATIVE TEXT: optional, responsive controls. All lettering lives in the artwork SVG. */
+.decor-configuration {
+  margin-top: 14px;
+  padding: 13px 14px;
+  border: 1px solid #e0edf9;
+  border-radius: 13px;
+  background: #fbfdff;
+}
+.decor-configuration summary {
+  cursor: pointer;
+  color: #729bc5;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 2px 0;
+}
+.decor-configuration summary:focus-visible { outline: 2px solid #93bce4; outline-offset: 4px; }
+.decor-configuration[open] summary { margin-bottom: 13px; }
+.decor-control-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  margin-top: 12px;
+}
+.decor-control-grid .detail-field select {
+  display: block;
+  width: 100%; min-width: 0; height: 43px;
+  padding: 8px 11px;
+  border-radius: 11px; border: 1px solid #dceaf8;
+  background: #f8fbff; color: #52657a; font: 14px Arial, sans-serif;
+}
+.decor-control-grid .detail-field input[type="color"] {
+  width: 100%; min-width: 0; height: 43px; border: 1px solid #dceaf8;
+  border-radius: 11px; padding: 5px; background: #f8fbff; cursor: pointer;
+}
+.decor-sliders {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 13px; margin-top: 13px;
+}
+.decor-sliders label { min-width: 0; display: flex; flex-direction: column; gap: 8px; color: #729bc5; font-size: 12px; font-weight: 700; }
+.decor-sliders output { font-weight: 400; color: #829bad; }
+.decor-sliders input[type="range"] { width: 100%; margin: 0; accent-color: #93bce4; }
+#decorativeLayer, #decorativeLayer *, .polaroid-caption { pointer-events: none !important; user-select: none; }
+@media (max-width: 450px) {
+  .decor-control-grid { gap: 9px; }
+  .decor-sliders { gap: 10px; }
+  .decor-configuration { padding: 12px; }
+}
+
 </style>
 </head>
 
@@ -584,6 +637,11 @@ h1 {
           width="2048"
           height="1430"
         />
+        <!-- Caption follows the left Polaroid's original tilt, above its paper edge. -->
+        <g class="polaroid-caption" transform="rotate(-7 958 620)">
+          <text id="polaroidLeftCaptionPreview" x="1085" y="1140" text-anchor="middle"
+                font-size="30" fill="#7289a3"></text>
+        </g>
 
 
         <!-- POLAROID 02 -->
@@ -603,6 +661,11 @@ h1 {
           width="2048"
           height="1430"
         />
+        <!-- Caption follows the right Polaroid's original tilt. -->
+        <g class="polaroid-caption" transform="rotate(8.08 1344 638)">
+          <text id="polaroidRightCaptionPreview" x="1500" y="1178" text-anchor="middle"
+                font-size="34" fill="#7289a3"></text>
+        </g>
 
 
         <!-- PHOTO SELECTION AREAS -->
@@ -649,6 +712,14 @@ h1 {
             "
           />
 
+        </g>
+
+        <!-- Optional canvas lettering; deliberately empty until the user types. -->
+        <g id="decorativeLayer" class="canvas-caption" aria-label="Decorative memory text">
+          <text id="topLeftDecorPreview" x="100" y="170" text-anchor="start"
+                font-size="54" fill="#729bc5"></text>
+          <text id="bottomRightDecorPreview" x="1635" y="1210" text-anchor="middle"
+                font-size="118" fill="#729bc5" transform="rotate(-13 1635 1210)"></text>
         </g>
 
         <!-- Soft falling effects are always above the artwork, never capture clicks. -->
@@ -736,6 +807,59 @@ h1 {
           <input type="file" accept="image/*" onchange="setPhoto(event,'rightPhoto')">
         </label>
       </div>
+      <p class="section-hint">Optional handwritten notes on each Polaroid's white border ♡</p>
+      <details class="decor-configuration" >
+  <summary>Polaroid 01 · Caption</summary>
+  <label class="detail-field" for="polaroidLeftInput">Text
+    <input id="polaroidLeftInput" type="text" maxlength="65" placeholder="Enter a message ♡" autocomplete="off">
+  </label>
+  <div class="decor-control-grid">
+    <label class="detail-field" for="polaroidLeftFont">Font
+      <select id="polaroidLeftFont"><option value="script">Elegant Script</option>
+<option value="handwritten" selected>Handwritten</option>
+<option value="serif">Classic Serif</option>
+<option value="clean">Clean</option>
+<option value="rounded">Soft Rounded</option></select>
+    </label>
+    <label class="detail-field" for="polaroidLeftColor">Text Color
+      <input id="polaroidLeftColor" type="color" value="#7289a3">
+    </label>
+  </div>
+  <div class="decor-sliders">
+    <label for="polaroidLeftSize">Size <output id="polaroidLeftSizeValue">30</output>
+      <input id="polaroidLeftSize" type="range" min="18" max="66" step="1" value="30">
+    </label>
+    <label for="polaroidLeftAngle">Angle <output id="polaroidLeftAngleValue">0°</output>
+      <input id="polaroidLeftAngle" type="range" min="-35" max="35" step="1" value="0">
+    </label>
+  </div>
+</details>
+      <details class="decor-configuration" >
+  <summary>Polaroid 02 · Caption</summary>
+  <label class="detail-field" for="polaroidRightInput">Text
+    <input id="polaroidRightInput" type="text" maxlength="65" placeholder="Enter a message ♡" autocomplete="off">
+  </label>
+  <div class="decor-control-grid">
+    <label class="detail-field" for="polaroidRightFont">Font
+      <select id="polaroidRightFont"><option value="script">Elegant Script</option>
+<option value="handwritten" selected>Handwritten</option>
+<option value="serif">Classic Serif</option>
+<option value="clean">Clean</option>
+<option value="rounded">Soft Rounded</option></select>
+    </label>
+    <label class="detail-field" for="polaroidRightColor">Text Color
+      <input id="polaroidRightColor" type="color" value="#7289a3">
+    </label>
+  </div>
+  <div class="decor-sliders">
+    <label for="polaroidRightSize">Size <output id="polaroidRightSizeValue">34</output>
+      <input id="polaroidRightSize" type="range" min="18" max="66" step="1" value="34">
+    </label>
+    <label for="polaroidRightAngle">Angle <output id="polaroidRightAngleValue">0°</output>
+      <input id="polaroidRightAngle" type="range" min="-35" max="35" step="1" value="0">
+    </label>
+  </div>
+</details>
     </section>
 
     <section class="custom-section" aria-labelledby="backgroundSectionTitle">
@@ -765,6 +889,9 @@ h1 {
           <option value="hearts">♡ Hearts</option>
           <option value="butterflies">୨୧ Butterflies</option>
           <option value="bubbles">◌ Bubbles</option>
+          <option value="fairydust">✦ Fairy Dust</option>
+          <option value="ribbons">୨୧ Ribbons</option>
+          <option value="moonstars">☾ Moon &amp; Stars</option>
         </select>
       </label>
       <div class="effect-adjust">
@@ -819,6 +946,62 @@ h1 {
       <p class="section-hint">Choose a preset or use the color picker. No drop shadows are added ♡</p>
     </section>
 
+    <section class="custom-section" aria-labelledby="decorativeSectionTitle">
+      <p class="section-title" id="decorativeSectionTitle">07 / DECORATIVE TEXT</p>
+      <p class="section-hint">Add a subtle note in the top-left and a larger, tilted script across the lower-right. Leave text blank to hide it.</p>
+      <details class="decor-configuration" open>
+  <summary>Top Left · Little Note</summary>
+  <label class="detail-field" for="topLeftDecorInput">Text
+    <input id="topLeftDecorInput" type="text" maxlength="65" placeholder="Enter a message ♡" autocomplete="off">
+  </label>
+  <div class="decor-control-grid">
+    <label class="detail-field" for="topLeftDecorFont">Font
+      <select id="topLeftDecorFont"><option value="script">Elegant Script</option>
+<option value="handwritten" selected>Handwritten</option>
+<option value="serif">Classic Serif</option>
+<option value="clean">Clean</option>
+<option value="rounded">Soft Rounded</option></select>
+    </label>
+    <label class="detail-field" for="topLeftDecorColor">Text Color
+      <input id="topLeftDecorColor" type="color" value="#729bc5">
+    </label>
+  </div>
+  <div class="decor-sliders">
+    <label for="topLeftDecorSize">Size <output id="topLeftDecorSizeValue">54</output>
+      <input id="topLeftDecorSize" type="range" min="20" max="100" step="1" value="54">
+    </label>
+    <label for="topLeftDecorAngle">Angle <output id="topLeftDecorAngleValue">0°</output>
+      <input id="topLeftDecorAngle" type="range" min="-35" max="35" step="1" value="0">
+    </label>
+  </div>
+</details>
+      <details class="decor-configuration" open>
+  <summary>Bottom Right · Signature</summary>
+  <label class="detail-field" for="bottomRightDecorInput">Text
+    <input id="bottomRightDecorInput" type="text" maxlength="65" placeholder="Enter a message ♡" autocomplete="off">
+  </label>
+  <div class="decor-control-grid">
+    <label class="detail-field" for="bottomRightDecorFont">Font
+      <select id="bottomRightDecorFont"><option value="script" selected>Elegant Script</option>
+<option value="handwritten">Handwritten</option>
+<option value="serif">Classic Serif</option>
+<option value="clean">Clean</option>
+<option value="rounded">Soft Rounded</option></select>
+    </label>
+    <label class="detail-field" for="bottomRightDecorColor">Text Color
+      <input id="bottomRightDecorColor" type="color" value="#729bc5">
+    </label>
+  </div>
+  <div class="decor-sliders">
+    <label for="bottomRightDecorSize">Size <output id="bottomRightDecorSizeValue">118</output>
+      <input id="bottomRightDecorSize" type="range" min="36" max="170" step="1" value="118">
+    </label>
+    <label for="bottomRightDecorAngle">Angle <output id="bottomRightDecorAngleValue">-13°</output>
+      <input id="bottomRightDecorAngle" type="range" min="-35" max="35" step="1" value="-13">
+    </label>
+  </div>
+</details>
+    </section>
 
   </section>
 
@@ -1652,7 +1835,10 @@ svg.addEventListener(
     stars: { colors: ["#fff9df", "#ffffff", "#def6ff", "#e9e3ff"], scale: [0.9, 1.75], speed: [31, 64], sway: [15, 48] },
     hearts: { colors: ["#ffe2ed", "#f6c7d7", "#e7d5f8", "#fff0f6"], scale: [0.88, 1.7], speed: [35, 77], sway: [16, 55] },
     butterflies: { colors: ["#e8dcff", "#dceeff", "#ffdfef", "#fff3fb"], scale: [1.08, 1.9], speed: [34, 68], sway: [20, 65] },
-    bubbles: { colors: ["#ffffff", "#dcefff", "#e8f8ff"], scale: [0.95, 2], speed: [25, 55], sway: [12, 40] }
+    bubbles: { colors: ["#ffffff", "#dcefff", "#e8f8ff"], scale: [0.95, 2], speed: [25, 55], sway: [12, 40] },
+    fairydust: { colors: ["#fff8e5", "#e7f8ff", "#ffebf7", "#ffffff"], scale: [0.55, 1.15], speed: [20, 46], sway: [18, 55] },
+    ribbons: { colors: ["#ffdbea", "#f5dafa", "#e0eeff", "#ffe9f3"], scale: [0.8, 1.45], speed: [30, 62], sway: [24, 60] },
+    moonstars: { colors: ["#fff5cb", "#e6edff", "#ffffff", "#f5e5ff"], scale: [0.72, 1.5], speed: [25, 56], sway: [18, 53] }
   };
 
   // The fill/stroke outlines are deliberately simple to avoid big sticker-like graphics.
@@ -1690,6 +1876,37 @@ svg.addEventListener(
         fill: color
       }));
       holder.appendChild(node("path", { d: "M 0,-6 Q 1,0 0,7", stroke: "#ffffff", "stroke-width": 1.3, "stroke-linecap": "round", fill: "none", opacity: 0.85 }));
+    } else if (type === "fairydust") {
+      // Dust-like pinpricks with a soft haze, rather than large solid stars.
+      holder.appendChild(node("circle", { r: 4.6, fill: color, opacity: 0.75 }));
+      holder.appendChild(node("circle", { r: 1.5, fill: "#ffffff", opacity: 0.95 }));
+      holder.appendChild(node("path", {
+        d: "M 0,-9 V -5 M 0,5 V 9 M -9,0 H -5 M 5,0 H 9",
+        stroke: color, "stroke-width": 1.15, "stroke-linecap": "round", fill: "none", opacity: 0.62
+      }));
+    } else if (type === "ribbons") {
+      // A tiny line-drawn bow with light ribbon tails.
+      holder.appendChild(node("path", {
+        d: "M -1,-1 C -5,-8 -12,-8 -11,-2 C -10,4 -4,4 -1,1 C 1,4 8,4 11,-2 C 12,-8 5,-8 1,-1",
+        fill: color, "fill-opacity": 0.35, stroke: color, "stroke-width": 1.4, "stroke-linejoin": "round"
+      }));
+      holder.appendChild(node("circle", { r: 2.15, fill: "#fffdfd", stroke: color, "stroke-width": 0.85 }));
+      holder.appendChild(node("path", {
+        d: "M -1,2 Q -3,8 -7,12 M 1,2 Q 4,8 7,12",
+        fill: "none", stroke: color, "stroke-width": 2.1, "stroke-linecap": "round"
+      }));
+    } else if (type === "moonstars") {
+      if (Math.random() < 0.33) {
+        holder.appendChild(node("path", {
+          d: "M 3,-11 A 11,11 0 1,0 9,9 A 10,10 0 0,1 3,-11 Z",
+          fill: color
+        }));
+      } else {
+        holder.appendChild(node("path", {
+          d: "M 0,-10 Q 2.1,-2.1 9,0 Q 2.1,2.1 0,10 Q -2.1,2.1 -9,0 Q -2.1,-2.1 0,-10 Z",
+          fill: color
+        }));
+      }
     } else if (type === "bubbles") {
       holder.appendChild(node("circle", {
         r: 8, fill: "#ffffff", "fill-opacity": 0.08,
@@ -1741,7 +1958,7 @@ svg.addEventListener(
     const type = chooser.value;
     for (const p of particles) {
       const swayX = Math.sin(elapsed * p.frequency + p.phase) * p.sway;
-      const twinkle = type === "stars" ? 0.80 + 0.20 * Math.sin(elapsed * 2.8 + p.phase) : 1;
+      const twinkle = ["stars", "fairydust", "moonstars"].includes(type) ? 0.80 + 0.20 * Math.sin(elapsed * 2.8 + p.phase) : 1;
       const fadeIn = Math.min(1, Math.max(0, (p.y + 25) / 100));
       const fadeOut = Math.min(1, Math.max(0, (HEIGHT + 50 - p.y) / 125));
       p.element.setAttribute("opacity", (p.baseOpacity * twinkle * fadeIn * fadeOut).toFixed(3));
@@ -1927,6 +2144,73 @@ svg.addEventListener(
   });
   updateText();
   recolorFrames();
+})();
+</script>
+
+<script>
+/* ===== LIVE DECORATIVE LETTERING (SVG ONLY — original PNG frames untouched) ===== */
+(function () {
+  const FONT_CHOICES = {
+    script: '"Great Vibes", "Snell Roundhand", "Apple Chancery", "Brush Script MT", cursive',
+    handwritten: '"Caveat", "Bradley Hand", "Segoe Print", "Comic Sans MS", cursive',
+    serif: 'Georgia, "Times New Roman", serif',
+    clean: 'Arial, Helvetica, sans-serif',
+    rounded: '"Trebuchet MS", "Hiragino Maru Gothic ProN", sans-serif'
+  };
+
+  const configurations = [
+    { key: "topLeftDecor", preview: "topLeftDecorPreview", x: 100, y: 170, defaultAngle: 0, maxWidth: 900, minFont: 16 },
+    { key: "bottomRightDecor", preview: "bottomRightDecorPreview", x: 1635, y: 1210, defaultAngle: -13, maxWidth: 730, minFont: 29 },
+    { key: "polaroidLeft", preview: "polaroidLeftCaptionPreview", x: 1085, y: 1140, defaultAngle: 0, maxWidth: 335, minFont: 15 },
+    { key: "polaroidRight", preview: "polaroidRightCaptionPreview", x: 1500, y: 1178, defaultAngle: 0, maxWidth: 335, minFont: 15 }
+  ];
+
+  for (const c of configurations) {
+    const get = suffix => document.getElementById(c.key + suffix);
+    const input = get("Input");
+    const font = get("Font");
+    const color = get("Color");
+    const size = get("Size");
+    const angle = get("Angle");
+    const sizeOutput = get("SizeValue");
+    const angleOutput = get("AngleValue");
+    const preview = document.getElementById(c.preview);
+
+    function refresh() {
+      const text = input.value.replace(/\s+/g, " ").trim();
+      const chosenSize = Number(size.value);
+      const chosenAngle = Number(angle.value);
+      sizeOutput.textContent = String(chosenSize);
+      angleOutput.textContent = chosenAngle + "°";
+      preview.textContent = text;
+      preview.setAttribute("fill", color.value);
+      preview.style.fontFamily = FONT_CHOICES[font.value] || FONT_CHOICES.clean;
+      preview.setAttribute("font-size", String(chosenSize));
+      preview.setAttribute("transform", `rotate(${chosenAngle} ${c.x} ${c.y})`);
+      preview.removeAttribute("textLength");
+      preview.removeAttribute("lengthAdjust");
+      if (!text) return;
+      // Reduce excessively long text just enough to keep it in its intended space.
+      let textWidth = preview.getComputedTextLength();
+      if (textWidth > c.maxWidth) {
+        const computedSize = Math.max(c.minFont, chosenSize * c.maxWidth / textWidth);
+        preview.setAttribute("font-size", computedSize.toFixed(1));
+        textWidth = preview.getComputedTextLength();
+        if (textWidth > c.maxWidth) {
+          preview.setAttribute("textLength", String(c.maxWidth));
+          preview.setAttribute("lengthAdjust", "spacingAndGlyphs");
+        }
+      }
+    }
+    for (const el of [input, font, color, size, angle]) {
+      el.addEventListener("input", refresh);
+      el.addEventListener("change", refresh);
+    }
+    refresh();
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(refresh).catch(() => {});
+    }
+  }
 })();
 </script>
 </body>
